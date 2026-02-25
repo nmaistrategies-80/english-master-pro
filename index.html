@@ -1,0 +1,2931 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>English Master Pro</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0f1a; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+
+// ============================================================
+// FONTS & GLOBAL STYLES
+// ============================================================
+const GlobalStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #09090f;
+      --bg2: #12121e;
+      --bg3: #1a1a2e;
+      --gold: #f5a623;
+      --gold2: #ffd700;
+      --jade: #00b894;
+      --jade2: #00cec9;
+      --crimson: #e84393;
+      --red: #ef4444;
+      --blue: #6c63ff;
+      --purple: #a855f7;
+      --text: #f0ece0;
+      --text2: #a09a8a;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --accent: #6c63ff;
+      --accent2: #a855f7;
+    }
+    html, body { background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    * { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; font-family: 'Nunito', sans-serif; border: none; outline: none; }
+    input { font-family: 'Nunito', sans-serif; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    @keyframes glow { 0%,100% { box-shadow: 0 0 12px var(--gold); } 50% { box-shadow: 0 0 28px var(--gold), 0 0 60px var(--gold); } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes xpPop { 0% { opacity:1; transform: translateY(0) scale(1); } 100% { opacity:0; transform: translateY(-60px) scale(1.4); } }
+    @keyframes bossShake { 0%,100% { transform: translateX(0) scale(1); } 25% { transform: translateX(-6px) scale(1.02); } 75% { transform: translateX(6px) scale(0.98); } }
+    @keyframes heartbeat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes cardFlip { 0% { transform: rotateY(0deg); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0deg); } }
+
+    .fade-in { animation: fadeIn 0.4s ease both; }
+    .pop-in { animation: popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+    .shake { animation: shake 0.4s ease; }
+    .float { animation: float 3s ease-in-out infinite; }
+    .glow { animation: glow 2s ease-in-out infinite; }
+    .slide-in { animation: slideIn 0.3s ease both; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--gold), var(--gold2), var(--jade));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+    .progress-bar {
+      height: 8px; border-radius: 4px; background: var(--bg3);
+      overflow: hidden; position: relative;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--gold), var(--jade));
+      transition: width 0.5s ease;
+    }
+
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .card-hover:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), #e09310);
+      color: #000; font-weight: 800; border-radius: 16px; padding: 14px 28px;
+      font-size: 16px; letter-spacing: 0.5px; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(245,166,35,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(245,166,35,0.6); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-ghost {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 20px; transition: all 0.2s; font-weight: 600;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .choice-btn {
+      background: var(--bg3); border: 2px solid var(--border);
+      border-radius: 16px; padding: 14px 18px; text-align: left;
+      color: var(--text); font-size: 15px; font-weight: 600;
+      transition: all 0.2s; width: 100%; user-select: none;
+    }
+    .choice-btn:hover:not(:disabled):not([data-disabled="true"]) { border-color: var(--gold); background: rgba(245,166,35,0.1); }
+    .choice-btn.correct { border-color: var(--jade)!important; background: rgba(0,184,148,0.2)!important; }
+    .choice-btn.wrong { border-color: var(--red)!important; background: rgba(239,68,68,0.15)!important; }
+    .choice-btn:disabled, .choice-btn[data-disabled="true"] { cursor: not-allowed; opacity: 0.7; }
+
+    .vocab-card {
+      background: linear-gradient(135deg, var(--bg2), var(--bg3));
+      border: 1px solid var(--border); border-radius: 24px;
+      padding: 28px; text-align: center; position: relative; overflow: hidden;
+    }
+    .vocab-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(245,166,35,0.05), transparent 60%);
+      pointer-events: none;
+    }
+
+    input.answer-input {
+      background: var(--bg3); border: 2px solid var(--border);
+      border-radius: 14px; padding: 14px 18px; color: var(--text);
+      font-size: 16px; width: 100%; transition: border-color 0.2s;
+    }
+    input.answer-input:focus { border-color: var(--gold); outline: none; }
+    input.answer-input.correct-input { border-color: var(--jade); }
+    input.answer-input.wrong-input { border-color: var(--red); }
+
+    .screen { min-height: 100vh; padding: 16px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
+
+    .boss-hp-bar { height: 12px; border-radius: 6px; background: rgba(255,0,0,0.2); overflow: hidden; }
+    .boss-hp-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #ff6b6b); transition: width 0.5s; border-radius: 6px; }
+
+    .zodiac-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    }
+    .zodiac-item {
+      background: var(--bg3); border: 2px solid var(--border);
+      border-radius: 16px; padding: 12px 6px; text-align: center;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .zodiac-item:hover { border-color: var(--gold); transform: scale(1.05); }
+    .zodiac-item.selected { border-color: var(--gold); background: rgba(245,166,35,0.15); box-shadow: 0 0 16px rgba(245,166,35,0.3); }
+    .zodiac-item .animal { font-size: 28px; display: block; }
+    .zodiac-item .viet-name { font-size: 10px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+    .zodiac-item .cn-name { font-size: 9px; color: var(--text2); }
+
+    .xp-popup {
+      position: fixed; pointer-events: none; z-index: 999;
+      font-size: 22px; font-weight: 900; color: var(--gold);
+      font-family: 'Baloo 2', sans-serif;
+      animation: xpPop 1s ease forwards;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    .level-badge {
+      background: linear-gradient(135deg, var(--gold), #c97d10);
+      color: #000; font-weight: 900; border-radius: 20px;
+      padding: 4px 12px; font-size: 13px;
+      font-family: 'Baloo 2', sans-serif;
+    }
+
+    .mode-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 18px; position: relative;
+      overflow: hidden; transition: all 0.25s; cursor: pointer;
+    }
+    .mode-card:not(.locked):hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(245,166,35,0.2); }
+    .mode-card.locked { opacity: 0.5; cursor: not-allowed; }
+    .mode-card .lock-overlay {
+      position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; background: rgba(0,0,0,0.3); border-radius: 20px;
+      font-size: 28px;
+    }
+
+    .letter-tile {
+      display: inline-block; background: var(--bg3); border: 2px solid var(--border);
+      border-radius: 10px; padding: 10px 14px; font-size: 18px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; user-select: none; min-width: 42px;
+      text-align: center;
+    }
+    .letter-tile:hover { border-color: var(--gold); background: rgba(245,166,35,0.1); transform: scale(1.05); }
+    .letter-tile.used { opacity: 0.3; cursor: not-allowed; }
+    .letter-tile.selected-letter { border-color: var(--jade); background: rgba(0,184,148,0.15); }
+
+    .conversation-bubble {
+      border-radius: 18px; padding: 14px 18px; font-size: 15px; max-width: 85%;
+      line-height: 1.5; font-weight: 600;
+    }
+    .bubble-left { background: var(--bg3); border-bottom-left-radius: 4px; align-self: flex-start; }
+    .bubble-right { background: rgba(245,166,35,0.2); border: 1px solid rgba(245,166,35,0.3); border-bottom-right-radius: 4px; align-self: flex-end; }
+
+    .tab-btn {
+      flex: 1; padding: 8px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      transition: all 0.2s; background: transparent; color: var(--text2);
+    }
+    .tab-btn.active { background: var(--gold); color: #000; }
+
+    @media (max-width: 380px) {
+      .zodiac-grid { grid-template-columns: repeat(3, 1fr); }
+      .zodiac-item .animal { font-size: 24px; }
+    }
+  `}</style>
+);
+
+// ============================================================
+// CONSTANTS & DATA
+// ============================================================
+const ZODIAC_ANIMALS = [
+  { emoji: "🐭", name: "Chuột", bracket: "Tý", en: "Rat" },
+  { emoji: "🐮", name: "Trâu", bracket: "Sửu", en: "Ox" },
+  { emoji: "🐯", name: "Hổ", bracket: "Dần", en: "Tiger" },
+  { emoji: "🐱", name: "Mèo", bracket: "Mão", en: "Cat" },
+  { emoji: "🐲", name: "Rồng", bracket: "Thìn", en: "Dragon" },
+  { emoji: "🐍", name: "Rắn", bracket: "Tỵ", en: "Snake" },
+  { emoji: "🐴", name: "Ngựa", bracket: "Ngọ", en: "Horse" },
+  { emoji: "🐑", name: "Dê", bracket: "Mùi", en: "Goat" },
+  { emoji: "🐵", name: "Khỉ", bracket: "Thân", en: "Monkey" },
+  { emoji: "🐔", name: "Gà", bracket: "Dậu", en: "Rooster" },
+  { emoji: "🐶", name: "Chó", bracket: "Tuất", en: "Dog" },
+  { emoji: "🐷", name: "Lợn", bracket: "Hợi", en: "Pig" },
+];
+
+const LEVELS = [
+  { min: 0, max: 200, tier: "Người Mới", color: "#10b981", unlocks: ["vocabulary"] },
+  { min: 200, max: 600, tier: "Trung Cấp", color: "#6c63ff", unlocks: ["vocabulary", "grammar", "spelling"] },
+  { min: 600, max: 1400, tier: "Nâng Cao", color: "#f5a623", unlocks: ["vocabulary", "grammar", "spelling", "conversation"] },
+  { min: 1400, max: Infinity, tier: "Bậc Thầy", color: "#e84393", unlocks: ["vocabulary", "grammar", "spelling", "conversation", "mixed"] },
+];
+
+const VOCAB = [
+  // === GREETINGS ===
+  { vi: "Xin chào", en: "Hello", emoji: "👋", category: "Greetings", img: null },
+  { vi: "Tôi / Mình", en: "I / Me", emoji: "🙋", category: "Greetings", img: null },
+  { vi: "Tạm biệt", en: "Goodbye", emoji: "🙋", category: "Greetings", img: null },
+  { vi: "Cảm ơn", en: "Thank you", emoji: "🙏", category: "Greetings", img: null },
+  { vi: "Xin lỗi", en: "Sorry / Excuse me", emoji: "😔", category: "Greetings", img: null },
+  { vi: "Vâng", en: "Yes", emoji: "✅", category: "Greetings", img: null },
+  { vi: "Không", en: "No", emoji: "❌", category: "Greetings", img: null },
+  { vi: "Làm ơn", en: "Please", emoji: "🤲", category: "Greetings", img: null },
+  { vi: "Không sao", en: "No problem / It's okay", emoji: "😊", category: "Greetings", img: null },
+  { vi: "Bao nhiêu tiền?", en: "How much?", emoji: "💰", category: "Greetings", img: null },
+  { vi: "Chào buổi sáng", en: "Good morning", emoji: "🌅", category: "Greetings", img: null },
+  { vi: "Chào buổi tối", en: "Good evening", emoji: "🌙", category: "Greetings", img: null },
+  { vi: "Tên tôi là", en: "My name is", emoji: "🪪", category: "Greetings", img: null },
+
+  // === NAIL SALON (Critical!) ===
+  { vi: "Làm móng tay", en: "Manicure", emoji: "💅", category: "Nail Salon", img: null },
+  { vi: "Làm móng chân", en: "Pedicure", emoji: "🦶", category: "Nail Salon", img: null },
+  { vi: "Sơn gel", en: "Gel nails", emoji: "✨", category: "Nail Salon", img: null },
+  { vi: "Tiền thưởng / Tip", en: "Tip", emoji: "💵", category: "Nail Salon", img: null },
+  { vi: "Hẹn giờ", en: "Appointment", emoji: "📅", category: "Nail Salon", img: null },
+  { vi: "Khách hàng", en: "Customer / Client", emoji: "🙎", category: "Nail Salon", img: null },
+  { vi: "Giá tiền", en: "Price", emoji: "🏷️", category: "Nail Salon", img: null },
+  { vi: "Giũa móng", en: "File the nails", emoji: "🔨", category: "Nail Salon", img: null },
+  { vi: "Cắt móng", en: "Cut nails", emoji: "✂️", category: "Nail Salon", img: null },
+  { vi: "Sơn móng", en: "Nail polish", emoji: "🖌️", category: "Nail Salon", img: null },
+  { vi: "Ngâm chân", en: "Foot soak", emoji: "🛁", category: "Nail Salon", img: null },
+  { vi: "Móng giả", en: "Acrylic nails", emoji: "💎", category: "Nail Salon", img: null },
+  { vi: "Thiết kế móng", en: "Nail art / Design", emoji: "🖼️", category: "Nail Salon", img: null },
+  { vi: "Lấy da chết", en: "Exfoliation", emoji: "🧹", category: "Nail Salon", img: null },
+  { vi: "Mát-xa", en: "Massage", emoji: "💆", category: "Nail Salon", img: null },
+  { vi: "Chờ một chút", en: "Wait a moment", emoji: "⏳", category: "Nail Salon", img: null },
+  { vi: "Ngồi đây", en: "Sit here", emoji: "🪑", category: "Nail Salon", img: null },
+  { vi: "Chọn màu", en: "Choose a color", emoji: "🎨", category: "Nail Salon", img: null },
+  { vi: "Màu yêu thích", en: "Favorite color", emoji: "🌈", category: "Nail Salon", img: null },
+  { vi: "Tiền mặt", en: "Cash", emoji: "🏧", category: "Nail Salon", img: null },
+  { vi: "Thẻ tín dụng", en: "Credit card", emoji: "💳", category: "Nail Salon", img: null },
+  { vi: "Hóa đơn", en: "Receipt / Bill", emoji: "🧾", category: "Nail Salon", img: null },
+  { vi: "Lịch hẹn", en: "Schedule / Booking", emoji: "📆", category: "Nail Salon", img: null },
+  { vi: "Nhân viên", en: "Staff / Employee", emoji: "👩‍💼", category: "Nail Salon", img: null },
+
+  // === COLORS ===
+  { vi: "Đỏ", en: "Red", emoji: "🔴", category: "Colors", img: null },
+  { vi: "Xanh lá", en: "Green", emoji: "🟢", category: "Colors", img: null },
+  { vi: "Xanh dương", en: "Blue", emoji: "🔵", category: "Colors", img: null },
+  { vi: "Vàng", en: "Yellow", emoji: "🟡", category: "Colors", img: null },
+  { vi: "Hồng", en: "Pink", emoji: "🩷", category: "Colors", img: null },
+  { vi: "Tím", en: "Purple", emoji: "🟣", category: "Colors", img: null },
+  { vi: "Trắng", en: "White", emoji: "⬜", category: "Colors", img: null },
+  { vi: "Đen", en: "Black", emoji: "⬛", category: "Colors", img: null },
+  { vi: "Cam", en: "Orange", emoji: "🟠", category: "Colors", img: null },
+  { vi: "Nâu", en: "Brown", emoji: "🟫", category: "Colors", img: null },
+  { vi: "Bạc", en: "Silver", emoji: "🪙", category: "Colors", img: null },
+  { vi: "Vàng kim", en: "Gold", emoji: "🥇", category: "Colors", img: null },
+
+  // === NUMBERS ===
+  { vi: "Một", en: "One", emoji: "1️⃣", category: "Numbers", img: null },
+  { vi: "Hai", en: "Two", emoji: "2️⃣", category: "Numbers", img: null },
+  { vi: "Ba", en: "Three", emoji: "3️⃣", category: "Numbers", img: null },
+  { vi: "Bốn", en: "Four", emoji: "4️⃣", category: "Numbers", img: null },
+  { vi: "Năm", en: "Five", emoji: "5️⃣", category: "Numbers", img: null },
+  { vi: "Mười", en: "Ten", emoji: "🔟", category: "Numbers", img: null },
+  { vi: "Hai mươi", en: "Twenty", emoji: "2️⃣0️⃣", category: "Numbers", img: null },
+  { vi: "Một trăm", en: "One hundred", emoji: "💯", category: "Numbers", img: null },
+
+  // === FAMILY ===
+  { vi: "Mẹ", en: "Mom / Mother", emoji: "👩", category: "Family", img: null },
+  { vi: "Ba / Bố", en: "Dad / Father", emoji: "👨", category: "Family", img: null },
+  { vi: "Con", en: "Child", emoji: "👶", category: "Family", img: null },
+  { vi: "Anh", en: "Older brother", emoji: "👱‍♂️", category: "Family", img: null },
+  { vi: "Chị", en: "Older sister", emoji: "👩‍🦱", category: "Family", img: null },
+  { vi: "Em", en: "Younger sibling", emoji: "🧒", category: "Family", img: null },
+  { vi: "Bà", en: "Grandmother", emoji: "👵", category: "Family", img: null },
+  { vi: "Ông", en: "Grandfather", emoji: "👴", category: "Family", img: null },
+  { vi: "Gia đình", en: "Family", emoji: "👨‍👩‍👧‍👦", category: "Family", img: null },
+
+  // === BODY ===
+  { vi: "Tay", en: "Hand / Arm", emoji: "✋", category: "Body", img: null },
+  { vi: "Chân", en: "Foot / Leg", emoji: "🦵", category: "Body", img: null },
+  { vi: "Móng", en: "Nail / Fingernail", emoji: "🖐️", category: "Body", img: null },
+  { vi: "Đầu", en: "Head", emoji: "🗣️", category: "Body", img: null },
+  { vi: "Mắt", en: "Eye", emoji: "👁️", category: "Body", img: null },
+  { vi: "Miệng", en: "Mouth", emoji: "👄", category: "Body", img: null },
+  { vi: "Tai", en: "Ear", emoji: "👂", category: "Body", img: null },
+  { vi: "Mũi", en: "Nose", emoji: "👃", category: "Body", img: null },
+
+  // === FOOD ===
+  { vi: "Phở", en: "Pho (noodle soup)", emoji: "🍜", category: "Food", img: null },
+  { vi: "Cơm", en: "Rice", emoji: "🍚", category: "Food", img: null },
+  { vi: "Bánh mì", en: "Bread / Banh mi sandwich", emoji: "🥖", category: "Food", img: null },
+  { vi: "Nước", en: "Water", emoji: "💧", category: "Food", img: null },
+  { vi: "Cà phê", en: "Coffee", emoji: "☕", category: "Food", img: null },
+  { vi: "Trà", en: "Tea", emoji: "🍵", category: "Food", img: null },
+  { vi: "Thịt gà", en: "Chicken", emoji: "🍗", category: "Food", img: null },
+  { vi: "Rau", en: "Vegetables", emoji: "🥦", category: "Food", img: null },
+  { vi: "Trái cây", en: "Fruit", emoji: "🍎", category: "Food", img: null },
+
+  // === COMMON VERBS ===
+  { vi: "Ăn", en: "Eat", emoji: "🍽️", category: "Verbs", img: null },
+  { vi: "Uống", en: "Drink", emoji: "🥤", category: "Verbs", img: null },
+  { vi: "Đi", en: "Go / Walk", emoji: "🚶", category: "Verbs", img: null },
+  { vi: "Nói", en: "Speak / Say", emoji: "💬", category: "Verbs", img: null },
+  { vi: "Hiểu", en: "Understand", emoji: "💡", category: "Verbs", img: null },
+  { vi: "Biết", en: "Know", emoji: "🧠", category: "Verbs", img: null },
+  { vi: "Thích", en: "Like / Enjoy", emoji: "❤️", category: "Verbs", img: null },
+  { vi: "Muốn", en: "Want", emoji: "💭", category: "Verbs", img: null },
+  { vi: "Cần", en: "Need", emoji: "⚠️", category: "Verbs", img: null },
+  { vi: "Mua", en: "Buy", emoji: "🛍️", category: "Verbs", img: null },
+  { vi: "Bán", en: "Sell", emoji: "🤑", category: "Verbs", img: null },
+  { vi: "Làm việc", en: "Work", emoji: "💼", category: "Verbs", img: null },
+  { vi: "Học", en: "Learn / Study", emoji: "📚", category: "Verbs", img: null },
+  { vi: "Giúp", en: "Help", emoji: "🤝", category: "Verbs", img: null },
+  { vi: "Xem", en: "Look / Watch", emoji: "👀", category: "Verbs", img: null },
+
+  // === PLACES ===
+  { vi: "Tiệm nail", en: "Nail salon", emoji: "🏪", category: "Places", img: null },
+  { vi: "Chợ", en: "Market", emoji: "🛒", category: "Places", img: null },
+  { vi: "Bệnh viện", en: "Hospital", emoji: "🏥", category: "Places", img: null },
+  { vi: "Trường học", en: "School", emoji: "🏫", category: "Places", img: null },
+  { vi: "Nhà", en: "House / Home", emoji: "🏠", category: "Places", img: null },
+  { vi: "Ngân hàng", en: "Bank", emoji: "🏦", category: "Places", img: null },
+  { vi: "Nhà hàng", en: "Restaurant", emoji: "🍴", category: "Places", img: null },
+
+  // === TIME ===
+  { vi: "Hôm nay", en: "Today", emoji: "🗓️", category: "Time", img: null },
+  { vi: "Ngày mai", en: "Tomorrow", emoji: "🔜", category: "Time", img: null },
+  { vi: "Hôm qua", en: "Yesterday", emoji: "🔙", category: "Time", img: null },
+  { vi: "Bây giờ", en: "Now", emoji: "⏰", category: "Time", img: null },
+  { vi: "Sáng", en: "Morning", emoji: "🌄", category: "Time", img: null },
+  { vi: "Chiều", en: "Afternoon", emoji: "🌤️", category: "Time", img: null },
+  { vi: "Tối", en: "Evening / Night", emoji: "🌃", category: "Time", img: null },
+];
+
+const GRAMMAR_LESSONS = [
+  {
+    id: "g1", title: "Basic sentence order",
+    explanation: "Vietnamese: Subject + Verb + Object\nEnglish: Subject + Verb + Object",
+    examples: [
+      { vi: "Tôi ăn cơm.", en: "I eat rice.", breakdown: ["Tôi=I", "ăn=eat", "cơm=rice"] },
+      { vi: "Em uống nước.", en: "The child drinks water.", breakdown: ["Em=child", "uống=drink", "nước=water"] },
+      { vi: "Chị mua hoa.", en: "She buys flowers.", breakdown: ["Chị=she", "mua=buy", "hoa=flowers"] },
+    ],
+    quiz: [
+      { prompt: "Rearrange: eat / I / rice", answer: "I eat rice" },
+      { prompt: "Rearrange: drink / she / coffee", answer: "She drinks coffee" },
+    ]
+  },
+  {
+    id: "g2", title: "Questions with 'Không?' (right? / or not?)",
+    explanation: "Add 'không?' at the end to turn a statement into a yes/no question.",
+    examples: [
+      { vi: "Bạn khỏe không?", en: "Are you well? (lit: You well not?)", breakdown: ["Bạn=you", "khỏe=well", "không=not/right?"] },
+      { vi: "Đắt không?", en: "Is it expensive?", breakdown: ["Đắt=expensive", "không=not/right?"] },
+    ],
+    quiz: [
+      { prompt: "How do you ask 'Is it good?' in Vietnamese?", answer: "Tốt không?" },
+      { prompt: "What does 'Đẹp không?' mean in English?", answer: "Is it beautiful?" },
+    ]
+  },
+  {
+    id: "g3", title: "Adjectives come AFTER nouns",
+    explanation: "In Vietnamese, adjectives follow the noun (opposite of English!).",
+    examples: [
+      { vi: "Móng đỏ", en: "Red nails (lit: nails red)", breakdown: ["Móng=nails", "đỏ=red"] },
+      { vi: "Khách hàng tốt", en: "Good customer (lit: customer good)", breakdown: ["Khách hàng=customer", "tốt=good"] },
+    ],
+    quiz: [
+      { prompt: "Translate: 'Nail dài' — what does this mean?", answer: "Long nails" },
+      { prompt: "How do you say 'pink color' in Vietnamese?", answer: "Màu hồng" },
+    ]
+  },
+  {
+    id: "g4", title: "Politeness particles: ạ, nhé, nha",
+    explanation: "'ạ' adds respect. 'nhé/nha' adds friendliness or agreement.",
+    examples: [
+      { vi: "Cảm ơn ạ.", en: "Thank you (respectful).", breakdown: ["Cảm ơn=thank you", "ạ=respect particle"] },
+      { vi: "Ngồi đây nhé.", en: "Sit here, okay?", breakdown: ["Ngồi=sit", "đây=here", "nhé=okay?"] },
+    ],
+    quiz: [
+      { prompt: "Make 'Xin chào' more respectful in Vietnamese", answer: "Xin chào ạ" },
+      { prompt: "What does 'nha' add to a sentence?", answer: "Friendliness or soft agreement" },
+    ]
+  },
+];
+
+const CONVERSATIONS = [
+  {
+    id: "c1", title: "Nail Salon: Greeting a Client", icon: "💅",
+    context: "A new client walks into your nail salon in Sacramento.",
+    dialogue: [
+      { speaker: "Staff (You)", vi: "Xin chào! Chào mừng đến tiệm.", en: "Hello! Welcome to the salon.", isPlayer: true },
+      { speaker: "Client", vi: "Xin chào. Tôi muốn làm móng tay.", en: "Hello. I'd like a manicure.", isPlayer: false },
+      { speaker: "Staff (You)", vi: "Bạn có hẹn không?", en: "Do you have an appointment?", isPlayer: true },
+      { speaker: "Client", vi: "Không, tôi không có hẹn.", en: "No, I don't have an appointment.", isPlayer: false },
+      { speaker: "Staff (You)", vi: "Không sao. Chờ một chút nhé.", en: "No problem. Wait a moment please.", isPlayer: true },
+    ],
+    playerLines: [0, 2, 4],
+    quiz: [
+      { q: "How do you ask if the client has an appointment?", choices: ["Bạn có hẹn không?", "Tiệm đẹp không?", "Bao nhiêu tiền?", "Cảm ơn ạ."], a: 0 },
+      { q: "What does 'Chờ một chút nhé' mean?", choices: ["Thank you very much", "Wait a moment please", "Sit down here", "Choose a color"], a: 1 },
+    ]
+  },
+  {
+    id: "c2", title: "At the Doctor", icon: "🏥",
+    context: "You're helping a Vietnamese patient communicate with their doctor.",
+    dialogue: [
+      { speaker: "Doctor", vi: "Bạn bị gì vậy?", en: "What's wrong with you?", isPlayer: false },
+      { speaker: "Patient (You)", vi: "Tôi bị đau đầu.", en: "I have a headache.", isPlayer: true },
+      { speaker: "Doctor", vi: "Bạn bị bao lâu rồi?", en: "How long have you had it?", isPlayer: false },
+      { speaker: "Patient (You)", vi: "Hai ngày rồi.", en: "For two days.", isPlayer: true },
+      { speaker: "Doctor", vi: "Uống thuốc này nhé.", en: "Take this medicine, okay.", isPlayer: false },
+    ],
+    playerLines: [1, 3],
+    quiz: [
+      { q: "How do you say 'I have a headache' in Vietnamese?", choices: ["Tôi bị đau bụng", "Tôi bị đau đầu", "Tôi bị mệt", "Tôi bị ho"], a: 1 },
+      { q: "What does 'Uống thuốc này' mean?", choices: ["Buy this medicine", "Take this medicine", "Throw this away", "Share this medicine"], a: 1 },
+    ]
+  },
+  {
+    id: "c3", title: "Shopping: Asking Prices", icon: "🛍️",
+    context: "You're shopping at a Vietnamese market.",
+    dialogue: [
+      { speaker: "You", vi: "Cái này bao nhiêu tiền?", en: "How much is this?", isPlayer: true },
+      { speaker: "Seller", vi: "Ba mươi đô.", en: "Thirty dollars.", isPlayer: false },
+      { speaker: "You", vi: "Đắt quá. Bớt chút được không?", en: "That's too expensive. Can you give a discount?", isPlayer: true },
+      { speaker: "Seller", vi: "Hai lăm đô thôi nhé.", en: "Twenty-five dollars, that's it.", isPlayer: false },
+      { speaker: "You", vi: "Được, tôi lấy.", en: "Okay, I'll take it.", isPlayer: true },
+    ],
+    playerLines: [0, 2, 4],
+    quiz: [
+      { q: "How do you say 'How much?' in Vietnamese?", choices: ["Ở đâu?", "Bao giờ?", "Bao nhiêu tiền?", "Tại sao?"], a: 2 },
+      { q: "What does 'Đắt quá' mean?", choices: ["Very cheap", "Very good", "Too expensive", "Very beautiful"], a: 2 },
+    ]
+  },
+  {
+    id: "c4", title: "Nail Salon: Taking Payment", icon: "💳",
+    context: "End of service — processing payment and tip.",
+    dialogue: [
+      { speaker: "Staff (You)", vi: "Dịch vụ hôm nay là sáu mươi đô.", en: "Today's service is sixty dollars.", isPlayer: true },
+      { speaker: "Client", vi: "Tôi trả bằng thẻ được không?", en: "Can I pay by card?", isPlayer: false },
+      { speaker: "Staff (You)", vi: "Được. Tiền thưởng tính riêng nhé.", en: "Yes. Tips are separate please.", isPlayer: true },
+      { speaker: "Client", vi: "Bao nhiêu phần trăm?", en: "What percentage?", isPlayer: false },
+      { speaker: "Staff (You)", vi: "Tùy bạn. Cảm ơn rất nhiều ạ!", en: "It's up to you. Thank you very much!", isPlayer: true },
+    ],
+    playerLines: [0, 2, 4],
+    quiz: [
+      { q: "How do you say 'Tips are separate' in Vietnamese?", choices: ["Hóa đơn ở đây", "Tiền thưởng tính riêng", "Cảm ơn bạn", "Trả tiền mặt"], a: 1 },
+      { q: "What does 'Tùy bạn' mean?", choices: ["I don't know", "It's up to you", "That's too much", "Please come again"], a: 1 },
+    ]
+  },
+];
+
+// ============================================================
+// PRONUNCIATION SCORING
+// ============================================================
+const levenshtein = (a, b) => {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) =>
+    Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0)
+  );
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+};
+const calcPronScore = (heard, target) => {
+  if (!heard || !target) return 0;
+  const h = heard.toLowerCase().trim(), t = target.toLowerCase().trim();
+  if (h === t) return 100;
+  if (h.includes(t) || t.includes(h)) return Math.round(88 + (Math.min(h.length, t.length) / Math.max(h.length, t.length)) * 10);
+  const dist = levenshtein(h, t);
+  return Math.max(0, Math.round((1 - dist / Math.max(h.length, t.length)) * 100));
+};
+
+// ============================================================
+// LESSON UNITS — structured learning path with songs & rhymes
+// ============================================================
+const LESSON_UNITS = [
+  {
+    id: "u1", emoji: "👋", title: "Lời Chào & Cơ Bản", enTitle: "Greetings & Basics",
+    color: "#f5a623", unlockXP: 0,
+    song: {
+      title: "🎵 The Hello Song",
+      lines: [
+        { text: "Hello, hello — how do you do?", highlight: "Hello" },
+        { text: "Good morning sunshine, the day is new!", highlight: "Good morning" },
+        { text: "I am here, and so are you —", highlight: "I / Me" },
+        { text: "Thank you, please — magic words are true!", highlight: "Thank you" },
+        { text: "Sorry, excuse me — all day through,", highlight: "Sorry / Excuse me" },
+        { text: "Yes means vâng, no means không too!", highlight: "Yes" },
+        { text: "No problem friend — we'll see it through! 🎶", highlight: null },
+      ]
+    },
+    batches: [
+      { title: "Lời chào 👋", wordKeys: ["Hello", "I / Me", "Goodbye", "Good morning", "Good evening"] },
+      { title: "Phép lịch sự 🙏", wordKeys: ["Thank you", "Please", "Sorry / Excuse me", "No problem / It's okay"] },
+      { title: "Cơ bản thêm 🗣️", wordKeys: ["Yes", "No", "How much?", "My name is"] },
+    ]
+  },
+  {
+    id: "u2", emoji: "💅", title: "Tiệm Nail", enTitle: "Nail Salon",
+    color: "#e84393", unlockXP: 80,
+    song: {
+      title: "🎵 The Nail Salon Song",
+      lines: [
+        { text: "Manicure for hands, pedicure for feet,", highlight: "Manicure" },
+        { text: "Gel nails, acrylic — looking so neat!", highlight: "Gel nails" },
+        { text: "Customer walks in — Good afternoon!", highlight: "Customer / Client" },
+        { text: "Appointment or walk-in, we'll see you soon!", highlight: "Appointment" },
+        { text: "Choose a color — pink or red?", highlight: "Choose a color" },
+        { text: "Cash or credit card — enough said!", highlight: "Cash" },
+        { text: "Don't forget the tip — and receipt!", highlight: "Tip" },
+        { text: "Nail salon life — can't be beat! 💅", highlight: null },
+      ]
+    },
+    batches: [
+      { title: "Dịch vụ cơ bản 💅", wordKeys: ["Manicure", "Pedicure", "Gel nails", "Acrylic nails"] },
+      { title: "Tiếp đón khách 🙎", wordKeys: ["Customer / Client", "Appointment", "Wait a moment", "Sit here", "Choose a color"] },
+      { title: "Kỹ thuật 🖌️", wordKeys: ["Nail polish", "File the nails", "Massage", "Nail art / Design"] },
+      { title: "Thanh toán 💳", wordKeys: ["Price", "Tip", "Cash", "Credit card", "Receipt / Bill"] },
+    ]
+  },
+  {
+    id: "u3", emoji: "🌈", title: "Màu Sắc", enTitle: "Colors",
+    color: "#6c63ff", unlockXP: 180,
+    song: {
+      title: "🎵 Rainbow Colors Song",
+      lines: [
+        { text: "Red like fire — orange like the sun,", highlight: "Red" },
+        { text: "Yellow like bananas — learning's so fun!", highlight: "Yellow" },
+        { text: "Green like grass and blue like sky,", highlight: "Green" },
+        { text: "Pink and purple — oh my, oh my!", highlight: "Pink" },
+        { text: "White like snow and black like night,", highlight: "White" },
+        { text: "Brown like earth and silver — shining bright!", highlight: "Silver" },
+        { text: "Gold shines on you — you're doing great! 🌈", highlight: "Gold" },
+      ]
+    },
+    batches: [
+      { title: "Màu cơ bản 🎨", wordKeys: ["Red", "Blue", "Yellow", "Green", "Orange"] },
+      { title: "Màu tươi sáng 🌸", wordKeys: ["Pink", "Purple", "Brown", "White", "Black"] },
+      { title: "Màu đặc biệt ✨", wordKeys: ["Silver", "Gold"] },
+    ]
+  },
+  {
+    id: "u4", emoji: "🔢", title: "Số & Thời Gian", enTitle: "Numbers & Time",
+    color: "#00b894", unlockXP: 300,
+    song: {
+      title: "🎵 Count & Tell Time!",
+      lines: [
+        { text: "One, two, three — counting with me!", highlight: "One" },
+        { text: "Four and five — it's fun, you see!", highlight: "Four" },
+        { text: "Ten, twenty, one hundred more —", highlight: "Ten" },
+        { text: "Numbers open every door!", highlight: null },
+        { text: "Morning coffee, afternoon sun —", highlight: "Morning" },
+        { text: "Evening rest when the day is done!", highlight: "Evening / Night" },
+        { text: "Today, tomorrow, yesterday —", highlight: "Today" },
+        { text: "Now let's count again, hooray! ⏰", highlight: null },
+      ]
+    },
+    batches: [
+      { title: "Số đếm 🔢", wordKeys: ["One", "Two", "Three", "Four", "Five", "Ten", "Twenty", "One hundred"] },
+      { title: "Buổi trong ngày 🌅", wordKeys: ["Morning", "Afternoon", "Evening / Night", "Now"] },
+      { title: "Ngày tháng 📅", wordKeys: ["Today", "Tomorrow", "Yesterday"] },
+    ]
+  },
+  {
+    id: "u5", emoji: "👨‍👩‍👧", title: "Gia Đình & Cơ Thể", enTitle: "Family & Body",
+    color: "#fd79a8", unlockXP: 450,
+    song: {
+      title: "🎵 My Family Song",
+      lines: [
+        { text: "Mom and dad — I love them so!", highlight: "Mom / Mother" },
+        { text: "Grandma, grandpa — watch me grow!", highlight: "Grandmother" },
+        { text: "Older brother, older sister too —", highlight: "Older brother" },
+        { text: "Younger sibling — I love you!", highlight: "Younger sibling" },
+        { text: "Head and hands and feet and eyes,", highlight: "Head" },
+        { text: "Ears and nose beneath the skies!", highlight: "Ear" },
+        { text: "Mouth to speak and hands to wave —", highlight: "Mouth" },
+        { text: "Learning English — so brave! 👶", highlight: null },
+      ]
+    },
+    batches: [
+      { title: "Gia đình 👨‍👩‍👧", wordKeys: ["Mom / Mother", "Dad / Father", "Grandmother", "Grandfather", "Child", "Older brother", "Older sister", "Younger sibling"] },
+      { title: "Cơ thể 💪", wordKeys: ["Head", "Hand / Arm", "Foot / Leg", "Eye", "Ear", "Mouth", "Nose"] },
+    ]
+  },
+  {
+    id: "u6", emoji: "🍜", title: "Thức Ăn & Động Từ", enTitle: "Food & Verbs",
+    color: "#fdcb6e", unlockXP: 650,
+    song: {
+      title: "🎵 Eat, Drink & Go!",
+      lines: [
+        { text: "Eat your rice and drink your tea —", highlight: "Eat" },
+        { text: "Pho and coffee — oh so free!", highlight: "Pho (noodle soup)" },
+        { text: "Chicken, fruit, and vegetables too —", highlight: "Chicken" },
+        { text: "Bread and water — good for you!", highlight: "Water" },
+        { text: "Go and speak and understand —", highlight: "Go / Walk" },
+        { text: "Learn and help with helping hands!", highlight: "Learn / Study" },
+        { text: "Buy and sell and work all day,", highlight: "Buy" },
+        { text: "Like and want — hip hip hooray! 🍜", highlight: "Like / Enjoy" },
+      ]
+    },
+    batches: [
+      { title: "Thức ăn 🍜", wordKeys: ["Pho (noodle soup)", "Rice", "Bread / Banh mi sandwich", "Coffee", "Tea", "Water", "Chicken", "Vegetables", "Fruit"] },
+      { title: "Động từ cơ bản ⚡", wordKeys: ["Eat", "Drink", "Go / Walk", "Speak / Say", "Understand", "Know"] },
+      { title: "Động từ hữu ích 💡", wordKeys: ["Like / Enjoy", "Want", "Need", "Buy", "Sell", "Work", "Learn / Study", "Help", "Look / Watch"] },
+    ]
+  },
+];
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+const randFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+// ── Smart answer checker ──────────────────────────────────────
+// Accepts ANY valid alternative in a slash-separated answer,
+// and strips parenthetical notes like "(noodle soup)".
+// e.g. correct = "Hand / Arm"  →  "hand" ✅  "arm" ✅  "hand / arm" ✅
+// e.g. correct = "Pho (noodle soup)"  →  "pho" ✅
+const checkEnAnswer = (userInput, correctEn) => {
+  const normalize = (s) =>
+    s.toLowerCase()
+      .replace(/\(.*?\)/g, "")   // strip (parentheticals)
+      .replace(/[?!.,]/g, "")     // strip punctuation
+      .trim();
+  const typed = normalize(userInput);
+  if (!typed) return false;
+  // Split on " / " to get all valid alternatives
+  const alternatives = correctEn.split(" / ").map(normalize).filter(Boolean);
+  return alternatives.some(alt => alt === typed);
+};
+
+// Returns the cleanest single form for unscramble tile generation
+// e.g. "Hand / Arm" → "hand", "Pho (noodle soup)" → "pho"
+const getSimpleEn = (en) =>
+  en.split(" / ")[0]            // take first alternative
+    .replace(/\(.*?\)/g, "")    // strip (parentheticals)
+    .replace(/[?!.,]/g, "")     // strip punctuation
+    .trim();
+const getTier = (xp) => {
+  const tier = LEVELS.find(l => xp >= l.min && xp < l.max) || LEVELS[LEVELS.length - 1];
+  return tier;
+};
+const getLevelNum = (xp) => {
+  let lvl = 1;
+  if (xp >= 200) lvl = 2;
+  if (xp >= 600) lvl = 3;
+  if (xp >= 1400) lvl = 4;
+  return lvl;
+};
+// Track last spoken word for visual display when audio is blocked
+var _lastSpoken = "";
+var _speakListeners = [];
+var _onSpeak = function(cb) { _speakListeners.push(cb); };
+var _emitSpeak = function(text) {
+  _lastSpoken = text;
+  for (var i = 0; i < _speakListeners.length; i++) { try { _speakListeners[i](text); } catch(e) {} }
+};
+
+const speak = (text, lang) => {
+  if (!lang) lang = "en-US";
+  _emitSpeak(text);
+  if (!window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    var utt = new SpeechSynthesisUtterance(text);
+    utt.lang = lang;
+    utt.rate = window._empSpeechRate || 0.85;
+    window.speechSynthesis.speak(utt);
+  } catch(e) {}
+};
+
+// Detect if audio actually works (some sandboxes block it silently)
+var _audioBlocked = false;
+try {
+  if (window.speechSynthesis) {
+    var _testUtt = new SpeechSynthesisUtterance(" ");
+    _testUtt.volume = 0;
+    _testUtt.onstart = function() { _audioBlocked = false; };
+    // If no onstart fires within 800ms, audio is likely blocked
+    setTimeout(function() {
+      if (window.speechSynthesis.pending || window.speechSynthesis.speaking) {
+        _audioBlocked = false;
+      } else {
+        _audioBlocked = true;
+      }
+    }, 800);
+    window.speechSynthesis.speak(_testUtt);
+  } else {
+    _audioBlocked = true;
+  }
+} catch(e) { _audioBlocked = true; }
+
+// Visual "now speaking" banner component
+const SpeakBanner = () => {
+  const [word, setWord] = useState("");
+  useEffect(() => {
+    _onSpeak(function(txt) { setWord(txt); setTimeout(function() { setWord(""); }, 2500); });
+  }, []);
+  if (!word) return null;
+  return (
+    <div style={{ position: "fixed", bottom: "70px", left: "50%", transform: "translateX(-50%)", background: "#1a1a2e", border: "2px solid #6c63ff", borderRadius: "20px", padding: "10px 20px", zIndex: 9999, display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 8px 32px rgba(108,99,255,0.4)", maxWidth: "90vw" }}>
+      <span style={{ fontSize: "18px" }}>🔊</span>
+      <span style={{ color: "#fff", fontWeight: 800, fontSize: "16px" }}>{word}</span>
+    </div>
+  );
+};
+
+// Audio blocked notice for top of screen
+const AudioNotice = () => {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div style={{ background: "#1e1b4b", border: "1px solid #6c63ff", borderRadius: "12px", padding: "10px 14px", marginBottom: "10px", display: "flex", alignItems: "flex-start", gap: "10px" }}>
+      <span style={{ fontSize: "18px", flexShrink: 0 }}>🔇</span>
+      <div style={{ flex: 1 }}>
+        <div style={{ color: "#a5b4fc", fontWeight: 800, fontSize: "12px", marginBottom: "2px" }}>Audio chạy trong Claude.ai bị giới hạn</div>
+        <div style={{ color: "#818cf8", fontSize: "11px", lineHeight: 1.4 }}>Từ đang học hiện trên màn hình. Âm thanh hoạt động đầy đủ khi dùng app độc lập.</div>
+      </div>
+      <button onClick={function() { setDismissed(true); }} style={{ background: "none", border: "none", color: "#6c63ff", fontSize: "18px", cursor: "pointer", flexShrink: 0, padding: 0 }}>✕</button>
+    </div>
+  );
+};
+
+// Speed presets
+const SPEED_PRESETS = [
+  { label: "0.5×", value: 0.5, hint: "Rất chậm" },
+  { label: "0.75×", value: 0.75, hint: "Chậm" },
+  { label: "1×", value: 1.0, hint: "Bình thường" },
+  { label: "1.25×", value: 1.25, hint: "Nhanh" },
+  { label: "1.5×", value: 1.5, hint: "Rất nhanh" },
+];
+
+const SpeedControl = ({ rate, onRate, compact = false }) => {
+  if (compact) {
+    return (
+      <div style={{
+        display: "flex", alignItems: "center", gap: "4px",
+        background: "rgba(255,255,255,0.06)", borderRadius: "20px",
+        padding: "3px 6px", border: "1px solid rgba(255,255,255,0.1)"
+      }}>
+        <span style={{ fontSize: "12px" }}>🐢</span>
+        {SPEED_PRESETS.map(p => (
+          <button
+            key={p.value}
+            onClick={() => onRate(p.value)}
+            style={{
+              background: rate === p.value ? "var(--accent)" : "transparent",
+              color: rate === p.value ? "#fff" : "var(--text2)",
+              border: "none", borderRadius: "12px",
+              padding: "2px 6px", fontSize: "10px", fontWeight: 700,
+              cursor: "pointer", transition: "all 0.2s"
+            }}
+          >{p.label}</button>
+        ))}
+        <span style={{ fontSize: "12px" }}>🐇</span>
+      </div>
+    );
+  }
+  return (
+    <div style={{
+      background: "var(--card)", borderRadius: "16px",
+      padding: "16px", border: "1px solid rgba(255,255,255,0.08)"
+    }}>
+      <div style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, marginBottom: "12px", letterSpacing: "0.5px" }}>
+        🔊 TỐC ĐỘ PHÁT ÂM / PRONUNCIATION SPEED
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <span style={{ fontSize: "20px" }}>🐢</span>
+        <div style={{ flex: 1, display: "flex", gap: "6px" }}>
+          {SPEED_PRESETS.map(p => (
+            <button
+              key={p.value}
+              onClick={() => onRate(p.value)}
+              style={{
+                flex: 1,
+                background: rate === p.value
+                  ? "linear-gradient(135deg, var(--accent), var(--accent2))"
+                  : "rgba(255,255,255,0.05)",
+                color: rate === p.value ? "#fff" : "var(--text2)",
+                border: rate === p.value ? "none" : "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "10px", padding: "8px 4px",
+                fontSize: "12px", fontWeight: 800, cursor: "pointer",
+                transition: "all 0.2s", display: "flex",
+                flexDirection: "column", alignItems: "center", gap: "2px"
+              }}
+            >
+              <span>{p.label}</span>
+              <span style={{ fontSize: "9px", fontWeight: 600, opacity: 0.8 }}>{p.hint}</span>
+            </button>
+          ))}
+        </div>
+        <span style={{ fontSize: "20px" }}>🐇</span>
+      </div>
+      <div style={{ marginTop: "10px", textAlign: "center", fontSize: "12px", color: "var(--text2)" }}>
+        Đang dùng: <strong style={{ color: "var(--accent)" }}>{SPEED_PRESETS.find(p => p.value === rate)?.hint ?? "Bình thường"}</strong>
+        {" · "}
+        <button
+          onClick={() => { speak("Hello! Welcome to the salon.", "en-US"); }}
+          style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontSize: "12px", fontWeight: 700 }}
+        >
+          ▶ Nghe thử
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// TRANSLATION REVEAL — tap any English word to see Vietnamese
+// ============================================================
+const RevealableWord = ({ en, vi, emoji, showAll }) => {
+  const [revealed, setRevealed] = useState(false);
+  const show = showAll || revealed;
+  return (
+    <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+      <span>{en}</span>
+      {show ? (
+        <span style={{
+          fontSize: "11px", color: "var(--gold)", fontWeight: 700,
+          background: "rgba(245,166,35,0.15)", borderRadius: "6px",
+          padding: "1px 6px", animation: "fadeIn 0.2s ease"
+        }}>{vi}</span>
+      ) : (
+        <button
+          onClick={e => { e.stopPropagation(); setRevealed(true); }}
+          style={{
+            fontSize: "9px", color: "var(--text2)", background: "rgba(255,255,255,0.07)",
+            border: "1px solid rgba(255,255,255,0.15)", borderRadius: "5px",
+            padding: "1px 5px", cursor: "pointer", fontWeight: 700, lineHeight: 1.4
+          }}
+        >👁 nghĩa</button>
+      )}
+    </div>
+  );
+};
+
+// Reset revealed state per card — wrap choices
+const RevealableChoiceBtn = ({ choice, onClick, className, disabled, showAll }) => {
+  const [revealed, setRevealed] = useState(false);
+  const show = showAll || revealed;
+  return (
+    <div
+      className={className}
+      onClick={disabled ? undefined : onClick}
+      data-disabled={disabled ? "true" : undefined}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      onKeyDown={e => !disabled && e.key === "Enter" && onClick?.()}
+      style={{ position: "relative", flexDirection: "column", gap: "4px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.7 : 1 }}>
+      <span>{choice.emoji} {choice.en}</span>
+      {show ? (
+        <span style={{ fontSize: "11px", color: "var(--gold)", fontWeight: 700, opacity: 0.9 }}>
+          ({choice.vi})
+        </span>
+      ) : !disabled ? (
+        <span
+          onClick={e => { e.stopPropagation(); setRevealed(true); }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => { e.stopPropagation(); if (e.key === "Enter") setRevealed(true); }}
+          style={{
+            fontSize: "9px", color: "var(--text2)", background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.15)", borderRadius: "5px",
+            padding: "1px 6px", cursor: "pointer", fontWeight: 700, lineHeight: 1.4,
+            marginTop: "2px", display: "inline-block"
+          }}
+        >👁 xem nghĩa</span>
+      ) : null}
+    </div>
+  );
+};
+// ── Storage: in-memory with localStorage backup
+// localStorage works in the standalone HTML file, silent fallback in Claude.ai sandbox
+const _store = {};
+const save = (key, val) => {
+  _store[key] = val;
+  try { localStorage.setItem("emp_" + key, JSON.stringify(val)); } catch(e) {}
+};
+const load = (key, def) => {
+  if (key in _store) return _store[key];
+  try {
+    var raw = localStorage.getItem("emp_" + key);
+    if (raw != null) { var v = JSON.parse(raw); _store[key] = v; return v; }
+  } catch(e) {}
+  return def;
+};
+
+// ============================================================
+// COMPONENTS
+// ============================================================
+
+const HeartDisplay = ({ hearts, maxHearts = 5 }) => (
+  <div style={{ display: "flex", gap: "3px" }}>
+    {Array.from({ length: maxHearts }).map((_, i) => (
+      <span key={i} style={{ fontSize: "18px", opacity: i < hearts ? 1 : 0.25, filter: i < hearts ? "none" : "grayscale(1)" }}>❤️</span>
+    ))}
+  </div>
+);
+
+const XPBar = ({ xp, tier }) => {
+  const next = LEVELS.find(l => xp < l.max)?.max ?? xp;
+  const prev = LEVELS.find(l => xp >= l.min && xp < l.max)?.min ?? 0;
+  const pct = Math.min(100, ((xp - prev) / (next - prev)) * 100);
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text2)", marginBottom: "4px" }}>
+        <span style={{ color: tier.color, fontWeight: 700 }}>{tier.tier}</span>
+        <span>{xp} XP</span>
+      </div>
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${tier.color}, var(--jade))` }} />
+      </div>
+    </div>
+  );
+};
+
+const ComboDisplay = ({ combo }) => {
+  if (combo < 2) return null;
+  const flames = combo >= 10 ? "🔥🔥🔥" : combo >= 5 ? "🔥🔥" : "🔥";
+  return (
+    <div style={{
+      background: "linear-gradient(135deg, rgba(245,166,35,0.2), rgba(239,68,68,0.2))",
+      border: "1px solid rgba(245,166,35,0.4)", borderRadius: "20px",
+      padding: "4px 14px", fontSize: "13px", fontWeight: 800, color: "var(--gold)",
+      display: "inline-flex", alignItems: "center", gap: "4px"
+    }}>
+      {flames} {combo}x Combo!
+    </div>
+  );
+};
+
+// ============================================================
+// SCREENS
+// ============================================================
+
+// ------------- WELCOME / AVATAR SELECTION -------------
+const WelcomeScreen = ({ onStart }) => {
+  const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState(null);
+  const [step, setStep] = useState(0); // 0=name, 1=avatar
+
+  return (
+    <div className="screen fade-in" style={{ display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "100vh", gap: "24px" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: "56px", marginBottom: "8px" }} className="float">🎓</div>
+        <h1 style={{ fontFamily: "'Baloo 2', sans-serif", fontSize: "28px", fontWeight: 900, lineHeight: 1.1 }}>
+          <span className="gradient-text">English Master Pro</span>
+        </h1>
+        <p style={{ color: "var(--text2)", fontSize: "14px", marginTop: "6px" }}>Học tiếng Anh · Vietnamese → English</p>
+      </div>
+
+      {step === 0 ? (
+        <div className="pop-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <label style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, letterSpacing: "0.5px" }}>TÊN CỦA BẠN / YOUR NAME</label>
+          <input
+            className="answer-input"
+            placeholder="Nhập tên của bạn..."
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && name.trim() && setStep(1)}
+            autoFocus
+          />
+          <button className="btn-primary" style={{ width: "100%" }} onClick={() => name.trim() && setStep(1)}>
+            Tiếp tục →
+          </button>
+        </div>
+      ) : (
+        <div className="pop-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div>
+            <div style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, letterSpacing: "0.5px", marginBottom: "12px" }}>
+              CHỌN CON GIÁP / CHOOSE YOUR ZODIAC
+            </div>
+            <div className="zodiac-grid">
+              {ZODIAC_ANIMALS.map((z, i) => (
+                <div key={i} className={`zodiac-item ${avatar === i ? "selected" : ""}`} onClick={() => setAvatar(i)}>
+                  <span className="animal">{z.emoji}</span>
+                  <div className="viet-name">{z.name}</div>
+                  <div className="cn-name">({z.bracket})</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button className="btn-ghost" onClick={() => setStep(0)}>← Quay lại</button>
+            <button
+              className="btn-primary" style={{ flex: 1 }}
+              disabled={avatar === null}
+              onClick={() => avatar !== null && onStart({ name: name.trim(), avatar })}
+            >
+              Bắt đầu! 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ textAlign: "center", fontSize: "12px", color: "var(--text2)", opacity: 0.6 }}>
+        🌟 Designed for the Vietnamese community in Sacramento
+      </div>
+    </div>
+  );
+};
+
+// ------------- MAIN MENU -------------
+const MainMenu = ({ player, xp, hearts, streak, onMode, onLeaderboard, onSettings, onLogout, customVocab }) => {
+  const tier = getTier(xp);
+  const z = ZODIAC_ANIMALS[player.avatar];
+
+  const modes = [
+    { id: "lesson", icon: "📖", label: "Bài Học", en: "Lessons", sub: "Học bài → mini game 🎵", minLevel: 1, featured: true },
+    { id: "vocabulary", icon: "📚", label: "Từ Vựng", en: "Vocabulary", sub: "Thẻ hình & điền từ", minLevel: 1 },
+    { id: "grammar", icon: "✏️", label: "Ngữ Pháp", en: "Grammar", sub: "Cấu trúc câu & thứ tự từ", minLevel: 2 },
+    { id: "spelling", icon: "🔤", label: "Chính Tả", en: "Spelling", sub: "Sắp xếp chữ & nghe gõ", minLevel: 2 },
+    { id: "conversation", icon: "💬", label: "Hội Thoại", en: "Conversation", sub: "Tình huống thực tế", minLevel: 3 },
+    { id: "boss", icon: "⚔️", label: "Đánh Boss", en: "Boss Battle", sub: "Đánh bại quái vật cuối!", minLevel: 1 },
+    { id: "mixed", icon: "🌪️", label: "Hỗn Hợp", en: "Mixed Master", sub: "Kết hợp tất cả chế độ", minLevel: 4 },
+  ];
+
+  const currentLevel = getLevelNum(xp);
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "20px", paddingBottom: "100px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{
+            width: "48px", height: "48px", borderRadius: "16px",
+            background: "var(--bg3)", border: "2px solid var(--gold)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px"
+          }}>{z.emoji}</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "15px" }}>{player.name}</div>
+            <div style={{ fontSize: "11px", color: "var(--text2)" }}>{z.name} ({z.bracket})</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {streak > 0 && <span style={{ fontSize: "13px", color: "var(--gold)", fontWeight: 700 }}>🔥 {streak}</span>}
+          <HeartDisplay hearts={hearts} />
+        </div>
+      </div>
+
+      {/* XP Bar */}
+      <div style={{
+        background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "16px",
+        padding: "14px", marginBottom: "20px"
+      }}>
+        <XPBar xp={xp} tier={tier} />
+        <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--text2)", display: "flex", justifyContent: "space-between" }}>
+          <span>Cấp {currentLevel} · {tier.tier}</span>
+          <span>{xp} XP tổng</span>
+        </div>
+      </div>
+
+      {/* Mode Cards */}
+      <div style={{ marginBottom: "8px", fontSize: "11px", color: "var(--text2)", fontWeight: 700, letterSpacing: "0.5px" }}>
+        CHỌN CHẾ ĐỘ / SELECT MODE
+      </div>
+      {/* Featured: Lessons */}
+      {(() => {
+        const lesson = modes.find(m => m.featured);
+        return (
+          <div
+            onClick={() => onMode(lesson.id)}
+            style={{
+              background: "linear-gradient(135deg, #f5a62322, #e8439310)",
+              border: "2px solid #f5a62355",
+              borderRadius: "18px", padding: "16px",
+              cursor: "pointer", marginBottom: "10px",
+              display: "flex", alignItems: "center", gap: "14px",
+              transition: "all 0.2s"
+            }}
+            className="card-hover"
+          >
+            <div style={{
+              width: "52px", height: "52px", borderRadius: "14px",
+              background: "linear-gradient(135deg, #f5a623, #e84393)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "26px", flexShrink: 0
+            }}>{lesson.icon}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 900, fontSize: "16px" }}>
+                {lesson.label} <span style={{ background: "var(--gold)", color: "#000", borderRadius: "8px", padding: "1px 7px", fontSize: "10px", fontWeight: 800, marginLeft: "4px" }}>BẮT ĐẦU ĐÂY</span>
+              </div>
+              <div style={{ fontSize: "12px", color: "var(--text2)", marginTop: "2px" }}>{lesson.sub}</div>
+            </div>
+            <div style={{ fontSize: "20px", color: "var(--text2)" }}>→</div>
+          </div>
+        );
+      })()}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
+        {modes.filter(m => !m.featured).map((m) => {
+          const locked = currentLevel < m.minLevel;
+          return (
+            <div
+              key={m.id}
+              className={`mode-card ${locked ? "locked" : ""}`}
+              onClick={() => !locked && onMode(m.id)}
+            >
+              <div style={{ fontSize: "28px", marginBottom: "6px" }}>{m.icon}</div>
+              <div style={{ fontWeight: 800, fontSize: "14px" }}>{m.label}</div>
+              <div style={{ fontSize: "11px", color: "var(--text2)", marginTop: "2px" }}>{m.sub}</div>
+              {locked && (
+                <div style={{
+                  position: "absolute", top: "8px", right: "8px",
+                  fontSize: "10px", color: "var(--text2)", fontWeight: 700
+                }}>🔒 Cấp {m.minLevel}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bottom Nav */}
+      <div style={{
+        position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+        width: "100%", maxWidth: "480px",
+        background: "var(--bg2)", borderTop: "1px solid var(--border)",
+        display: "flex", padding: "10px 16px", gap: "6px", zIndex: 100
+      }}>
+        {[
+          { icon: "🏆", label: "Xếp hạng", action: onLeaderboard },
+          { icon: "⬆️", label: "Tải lên", action: onSettings },
+          { icon: "⚙️", label: "Cài đặt", action: onSettings },
+          { icon: "👤", label: "Đổi người", action: onLogout },
+        ].map((btn, i) => (
+          <button key={i} className="tab-btn" onClick={btn.action}>
+            <div style={{ fontSize: "18px" }}>{btn.icon}</div>
+            <div style={{ fontSize: "10px" }}>{btn.label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ------------- VOCABULARY MODE -------------
+const VocabMode = ({ vocab, onBack, onXP, onMiss, combo, showTranslations }) => {
+  const pool = vocab;
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState("picture"); // picture | fill | result
+  const [choices, setChoices] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [input, setInput] = useState("");
+  const [fillResult, setFillResult] = useState(null);
+  const [cardKey, setCardKey] = useState(0);
+  const [subMode, setSubMode] = useState("picture"); // alternate picture/fill
+  const questionRef = useRef(null);
+
+  const current = pool[idx % pool.length];
+
+  useEffect(() => {
+    if (phase === "picture") {
+      // Build choices: correct + 3 wrongs
+      const wrongs = shuffle(pool.filter(w => w.en !== current.en)).slice(0, 3);
+      setChoices(shuffle([current, ...wrongs]));
+      setSelected(null);
+    }
+  }, [idx, phase]);
+
+  const handlePictureChoice = (choice) => {
+    if (selected !== null) return;
+    setSelected(choice.en);
+    const correct = choice.en === current.en;
+    if (correct) { onXP(10 + combo * 2); }
+    else onMiss();
+    setTimeout(() => { setPhase("fill"); setInput(""); setFillResult(null); }, 900);
+  };
+
+  const handleFillSubmit = () => {
+    const correct = checkEnAnswer(input, current.en);
+    setFillResult(correct ? "correct" : "wrong");
+    if (correct) onXP(15 + combo * 2);
+    else onMiss();
+    setTimeout(() => {
+      setIdx(i => i + 1);
+      setPhase("picture");
+      setCardKey(k => k + 1);
+      setFillResult(null);
+      setInput("");
+    }, 1100);
+  };
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: "16px" }}>📚 Từ Vựng</div>
+          <div style={{ fontSize: "12px", color: "var(--text2)" }}>Thẻ {(idx % pool.length) + 1} / {pool.length}</div>
+        </div>
+        <div style={{ marginLeft: "auto" }}>
+          <ComboDisplay combo={combo} />
+        </div>
+      </div>
+
+      {/* Progress */}
+      <div className="progress-bar" style={{ marginBottom: "20px" }}>
+        <div className="progress-fill" style={{ width: `${((idx % pool.length) / pool.length) * 100}%` }} />
+      </div>
+
+      <div key={cardKey} className="vocab-card pop-in" style={{ marginBottom: "20px" }}>
+        <div style={{ fontSize: "72px", marginBottom: "12px" }} className="float">{current.img
+          ? <img src={current.img} alt={current.vi} style={{ width: "80px", height: "80px", objectFit: "contain", borderRadius: "12px" }} />
+          : current.emoji}
+        </div>
+        <div style={{ fontSize: "28px", fontWeight: 900, fontFamily: "'Baloo 2', sans-serif", marginBottom: "6px" }}>
+          {current.vi}
+        </div>
+        <div style={{ fontSize: "12px", color: "var(--text2)", marginBottom: "10px" }}>
+          {current.category}
+        </div>
+        <button
+          onClick={() => speak(getSimpleEn(current.en))}
+          style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px", padding: "6px 14px", color: "var(--text)", fontSize: "13px" }}
+        >🔊 Nghe tiếng Anh</button>
+      </div>
+
+      {phase === "picture" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, textAlign: "center", marginBottom: "4px" }}>
+            Từ này nghĩa là gì trong tiếng Anh?
+          </div>
+          {choices.map((c, i) => (
+            <RevealableChoiceBtn
+              key={i}
+              choice={c}
+              showAll={showTranslations}
+              className={`choice-btn ${selected ? (c.en === current.en ? "correct" : selected === c.en ? "wrong" : "") : ""}`}
+              onClick={() => handlePictureChoice(c)}
+              disabled={!!selected}
+            />
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, textAlign: "center" }}>
+            ✍️ Gõ bản dịch tiếng Anh:
+          </div>
+          <input
+            className={`answer-input ${fillResult === "correct" ? "correct-input" : fillResult === "wrong" ? "wrong-input" : ""}`}
+            placeholder="Gõ tiếng Anh..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && input.trim() && !fillResult && handleFillSubmit()}
+            autoFocus
+          />
+          {fillResult === "wrong" && (
+            <div style={{ color: "var(--red)", fontSize: "13px", fontWeight: 700 }}>
+              ❌ Đáp án: <span style={{ color: "var(--jade)" }}>{current.en}</span>
+              <span style={{ color: "var(--gold)", marginLeft: "8px" }}>({current.vi})</span>
+            </div>
+          )}
+          {!fillResult && (
+            <button className="btn-primary" onClick={handleFillSubmit} disabled={!input.trim()}>
+              Kiểm tra ✓
+            </button>
+          )}
+          <button style={{ background: "transparent", color: "var(--text2)", fontSize: "13px" }} onClick={() => speak(current.vi, "vi-VN")}>
+            🔊 Nghe tiếng Việt
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ------------- GRAMMAR MODE -------------
+const GrammarMode = ({ onBack, onXP, onMiss }) => {
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState("learn"); // learn | quiz
+  const [qIdx, setQIdx] = useState(0);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState(null);
+
+  const lesson = GRAMMAR_LESSONS[idx % GRAMMAR_LESSONS.length];
+  const quiz = lesson.quiz[qIdx % lesson.quiz.length];
+
+  const checkAnswer = () => {
+    const normalize = (s) => s.toLowerCase().replace(/[?!.,ạ]/g, "").trim();
+    const typed = normalize(input);
+    const expected = normalize(quiz.answer);
+    // Also accept if typed is a valid alternative (split by " / ")
+    const alts = quiz.answer.split(" / ").map(normalize);
+    const correct = typed === expected || alts.includes(typed);
+    setResult(correct ? "correct" : "wrong");
+    if (correct) onXP(20);
+    else onMiss();
+    setTimeout(() => {
+      setInput("");
+      setResult(null);
+      if (qIdx + 1 >= lesson.quiz.length) {
+        setIdx(i => i + 1);
+        setPhase("learn");
+        setQIdx(0);
+      } else {
+        setQIdx(q => q + 1);
+      }
+    }, 1200);
+  };
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: "16px" }}>✏️ Ngữ Pháp</div>
+          <div style={{ fontSize: "12px", color: "var(--text2)" }}>Bài {(idx % GRAMMAR_LESSONS.length) + 1} / {GRAMMAR_LESSONS.length}</div>
+        </div>
+      </div>
+
+      {phase === "learn" ? (
+        <div className="fade-in">
+          <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "11px", color: "var(--gold)", fontWeight: 700, letterSpacing: "0.5px", marginBottom: "8px" }}>
+              📖 BÀI HỌC {idx % GRAMMAR_LESSONS.length + 1}
+            </div>
+            <div style={{ fontSize: "18px", fontWeight: 800, marginBottom: "12px" }}>{lesson.title}</div>
+            <div style={{ fontSize: "13px", color: "var(--text2)", lineHeight: "1.6", whiteSpace: "pre-line" }}>{lesson.explanation}</div>
+          </div>
+          {lesson.examples.map((ex, i) => (
+            <div key={i} style={{ background: "var(--bg3)", borderRadius: "14px", padding: "14px", marginBottom: "10px" }}>
+              <div style={{ fontWeight: 800, color: "var(--gold)", marginBottom: "4px" }}>{ex.vi}</div>
+              <div style={{ color: "var(--jade)", marginBottom: "8px" }}>{ex.en}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {ex.breakdown.map((b, j) => (
+                  <span key={j} style={{ background: "var(--bg2)", borderRadius: "8px", padding: "3px 8px", fontSize: "11px", color: "var(--text2)" }}>{b}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button className="btn-primary" style={{ width: "100%", marginTop: "8px" }} onClick={() => setPhase("quiz")}>
+            Làm bài kiểm tra →
+          </button>
+        </div>
+      ) : (
+        <div className="fade-in">
+          <div style={{ background: "var(--bg2)", border: "1px solid var(--gold)", borderRadius: "20px", padding: "20px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "11px", color: "var(--gold)", fontWeight: 700, marginBottom: "10px" }}>❓ ĐỐ VUI</div>
+            <div style={{ fontSize: "16px", fontWeight: 700 }}>{quiz.prompt}</div>
+          </div>
+          <input
+            className={`answer-input ${result === "correct" ? "correct-input" : result === "wrong" ? "wrong-input" : ""}`}
+            placeholder="Gõ câu trả lời..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && input.trim() && !result && checkAnswer()}
+          />
+          {result === "wrong" && (
+            <div style={{ marginTop: "10px", color: "var(--red)", fontSize: "13px", fontWeight: 700 }}>
+              Đáp án: <span style={{ color: "var(--jade)" }}>{quiz.answer}</span>
+            </div>
+          )}
+          {!result && (
+            <button className="btn-primary" style={{ width: "100%", marginTop: "12px" }} onClick={checkAnswer} disabled={!input.trim()}>
+              Kiểm tra ✓
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ------------- SPELLING MODE -------------
+const SpellingMode = ({ vocab, onBack, onXP, onMiss, combo, showTranslations }) => {
+  const [idx, setIdx] = useState(0);
+  const [mode, setMode] = useState("unscramble"); // unscramble | type_audio
+  const [letterTiles, setLetterTiles] = useState([]);
+  const [selectedLetters, setSelectedLetters] = useState([]);
+  const [inputVal, setInputVal] = useState("");
+  const [result, setResult] = useState(null);
+  const [audioPlayed, setAudioPlayed] = useState(false);
+
+  const current = vocab[idx % vocab.length];
+
+  useEffect(() => {
+    const target = getSimpleEn(current.en).toUpperCase();
+    // Filter spaces so users never get a blank space tile
+    const letters = target.split("").filter(c => c !== " ");
+    setLetterTiles(shuffle(letters).map((l, i) => ({ letter: l, id: i, used: false })));
+    setSelectedLetters([]);
+    setResult(null);
+    setInputVal("");
+    setAudioPlayed(false);
+  }, [idx, mode]);
+
+  const handleTile = (tile) => {
+    if (tile.used || result) return;
+    const updated = letterTiles.map(t => t.id === tile.id ? { ...t, used: true } : t);
+    setLetterTiles(updated);
+    setSelectedLetters(s => [...s, tile]);
+  };
+
+  const handleUndo = () => {
+    if (!selectedLetters.length || result) return;
+    const last = selectedLetters[selectedLetters.length - 1];
+    setLetterTiles(t => t.map(tile => tile.id === last.id ? { ...tile, used: false } : tile));
+    setSelectedLetters(s => s.slice(0, -1));
+  };
+
+  const checkUnscramble = () => {
+    const answer = selectedLetters.map(t => t.letter).join("").toLowerCase();
+    // Compare without spaces so "nailart" matches "nail art"
+    const target = getSimpleEn(current.en).toLowerCase().replace(/\s/g, "");
+    const correct = answer === target;
+    setResult(correct ? "correct" : "wrong");
+    if (correct) onXP(20 + combo * 3);
+    else onMiss();
+    setTimeout(() => { setIdx(i => i + 1); setResult(null); }, 1100);
+  };
+
+  const checkAudio = () => {
+    const correct = checkEnAnswer(inputVal, current.en);
+    setResult(correct ? "correct" : "wrong");
+    if (correct) onXP(25 + combo * 3);
+    else onMiss();
+    setTimeout(() => { setIdx(i => i + 1); setResult(null); setInputVal(""); }, 1200);
+  };
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+        <div style={{ fontWeight: 800, fontSize: "16px" }}>🔤 Chính Tả</div>
+      </div>
+
+      <div style={{ display: "flex", background: "var(--bg2)", borderRadius: "12px", padding: "4px", marginBottom: "20px" }}>
+        {["unscramble", "type_audio"].map(m => (
+          <button key={m} className={`tab-btn ${mode === m ? "active" : ""}`} onClick={() => setMode(m)}>
+            {m === "unscramble" ? "🧩 Sắp Xếp Chữ" : "🎧 Nghe & Gõ"}
+          </button>
+        ))}
+      </div>
+
+      <div className="vocab-card pop-in" style={{ marginBottom: "20px" }}>
+        <div style={{ fontSize: "60px", marginBottom: "8px" }}>{current.emoji}</div>
+        <div style={{ fontSize: "22px", fontWeight: 900, fontFamily: "'Baloo 2', sans-serif" }}>{current.vi}</div>
+        {mode === "type_audio" && (
+          <button
+            onClick={() => { speak(getSimpleEn(current.en)); setAudioPlayed(true); }}
+            style={{
+              marginTop: "12px", background: audioPlayed ? "rgba(0,184,148,0.2)" : "var(--bg3)",
+              border: `2px solid ${audioPlayed ? "var(--jade)" : "var(--border)"}`,
+              borderRadius: "12px", padding: "10px 20px", color: "var(--text)", fontSize: "14px", fontWeight: 700
+            }}
+          >
+            {audioPlayed ? "🔊 Nghe lại" : "🎧 Phát âm thanh"}
+          </button>
+        )}
+      </div>
+
+      {mode === "unscramble" ? (
+        <div>
+          <div style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, textAlign: "center", marginBottom: "12px" }}>
+            Sắp xếp {getSimpleEn(current.en).replace(/\s/g, "").length} chữ cái thành từ tiếng Anh:
+          </div>
+          {/* Ô trả lời */}
+          <div style={{
+            minHeight: "52px", background: "var(--bg3)", border: `2px solid ${result === "correct" ? "var(--jade)" : result === "wrong" ? "var(--red)" : "var(--border)"}`,
+            borderRadius: "14px", padding: "10px", display: "flex", flexWrap: "wrap", gap: "6px",
+            alignItems: "center", marginBottom: "12px"
+          }}>
+            {selectedLetters.map((t, i) => (
+              <span key={i} className="letter-tile selected-letter" style={{ cursor: "default" }}>{t.letter}</span>
+            ))}
+            {!selectedLetters.length && <span style={{ color: "var(--text2)", fontSize: "13px" }}>Chạm chữ cái bên dưới...</span>}
+          </div>
+          {/* Ô chữ cái */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", marginBottom: "16px" }}>
+            {letterTiles.map((tile) => (
+              <button key={tile.id} className={`letter-tile ${tile.used ? "used" : ""}`} onClick={() => handleTile(tile)}>
+                {tile.letter}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button className="btn-ghost" onClick={handleUndo} style={{ flex: 1 }}>↩ Xóa</button>
+            <button className="btn-primary" style={{ flex: 2 }}
+              onClick={checkUnscramble} disabled={selectedLetters.length === 0 || !!result}>
+              Kiểm tra ✓
+            </button>
+          </div>
+          {result === "wrong" && (
+            <div style={{ marginTop: "10px", textAlign: "center", color: "var(--red)", fontWeight: 700 }}>
+              ❌ Đáp án: <span style={{ color: "var(--jade)" }}>{getSimpleEn(current.en).toUpperCase()}</span>
+              {showTranslations && <span style={{ color: "var(--gold)", marginLeft: "8px" }}>({current.vi})</span>}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <div style={{ fontSize: "13px", color: "var(--text2)", fontWeight: 700, textAlign: "center", marginBottom: "12px" }}>
+            Nghe và gõ từ tiếng Anh:
+          </div>
+          <input
+            className={`answer-input ${result === "correct" ? "correct-input" : result === "wrong" ? "wrong-input" : ""}`}
+            placeholder="Gõ từ bạn nghe được..."
+            value={inputVal}
+            onChange={e => setInputVal(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && inputVal.trim() && !result && checkAudio()}
+          />
+          {result === "wrong" && (
+            <div style={{ marginTop: "10px", color: "var(--red)", fontWeight: 700 }}>
+              Đáp án: <span style={{ color: "var(--jade)" }}>{current.en}</span>
+              {showTranslations && <span style={{ color: "var(--gold)", marginLeft: "8px" }}>({current.vi})</span>}
+            </div>
+          )}
+          {!result && (
+            <button className="btn-primary" style={{ width: "100%", marginTop: "12px" }} onClick={checkAudio} disabled={!inputVal.trim()}>
+              Kiểm tra ✓
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ------------- CONVERSATION MODE -------------
+const ConversationMode = ({ onBack, onXP, onMiss }) => {
+  const [cIdx, setCIdx] = useState(0);
+  const [phase, setPhase] = useState("read"); // read | quiz
+  const [qIdx, setQIdx] = useState(0);
+  const [selected, setSelected] = useState(null);
+
+  const conv = CONVERSATIONS[cIdx % CONVERSATIONS.length];
+  const quiz = conv.quiz[qIdx % conv.quiz.length];
+
+  const handleChoice = (i) => {
+    if (selected !== null) return;
+    setSelected(i);
+    const correct = i === quiz.a;
+    if (correct) onXP(25);
+    else onMiss();
+    setTimeout(() => {
+      if (qIdx + 1 >= conv.quiz.length) {
+        setCIdx(c => c + 1);
+        setPhase("read");
+        setQIdx(0);
+      } else setQIdx(q => q + 1);
+      setSelected(null);
+    }, 1000);
+  };
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: "16px" }}>💬 Hội Thoại</div>
+          <div style={{ fontSize: "12px", color: "var(--text2)" }}>Tình huống {(cIdx % CONVERSATIONS.length) + 1} / {CONVERSATIONS.length}</div>
+        </div>
+      </div>
+
+      <div style={{
+        background: "var(--bg2)", border: "1px solid var(--gold)", borderRadius: "20px", padding: "16px", marginBottom: "16px"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+          <span style={{ fontSize: "28px" }}>{conv.icon}</span>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "15px" }}>{conv.title}</div>
+            <div style={{ fontSize: "12px", color: "var(--text2)" }}>{conv.context}</div>
+          </div>
+        </div>
+      </div>
+
+      {phase === "read" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+          {conv.dialogue.map((line, i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: line.isPlayer ? "flex-end" : "flex-start" }}>
+              <div style={{ fontSize: "10px", color: "var(--text2)", marginBottom: "4px", fontWeight: 700 }}>
+                {line.speaker}
+              </div>
+              <div className={`conversation-bubble ${line.isPlayer ? "bubble-right" : "bubble-left"}`}>
+                <div style={{ fontWeight: 700, marginBottom: "4px", color: line.isPlayer ? "var(--gold)" : "var(--text)" }}>{line.vi}</div>
+                <div style={{ fontSize: "13px", color: "var(--text2)" }}>{line.en}</div>
+                <button
+                  onClick={() => speak(line.en)}
+                  style={{ background: "transparent", color: "var(--text2)", fontSize: "11px", marginTop: "4px", padding: 0 }}
+                >🔊</button>
+              </div>
+            </div>
+          ))}
+          <button className="btn-primary" style={{ width: "100%", marginTop: "8px" }} onClick={() => setPhase("quiz")}>
+            Làm bài kiểm tra →
+          </button>
+        </div>
+      ) : (
+        <div className="fade-in">
+          <div style={{ background: "var(--bg2)", border: "1px solid var(--gold)", borderRadius: "20px", padding: "20px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "11px", color: "var(--gold)", fontWeight: 700, marginBottom: "8px" }}>❓ CÂU HỎI {qIdx + 1}</div>
+            <div style={{ fontSize: "15px", fontWeight: 700 }}>{quiz.q}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {quiz.choices.map((c, i) => (
+              <button
+                key={i}
+                className={`choice-btn ${selected !== null ? (i === quiz.a ? "correct" : selected === i ? "wrong" : "") : ""}`}
+                onClick={() => handleChoice(i)}
+                disabled={selected !== null}
+              >{c}</button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ------------- BOSS BATTLE -------------
+const BossBattle = ({ vocab, onBack, onXP, onMiss, showTranslations }) => {
+  const BOSS_HP = 10;
+  const [bossHp, setBossHp] = useState(BOSS_HP);
+  const [playerHp, setPlayerHp] = useState(5);
+  const [selected, setSelected] = useState(null);
+  const [phase, setPhase] = useState("battle");
+  const [bossAnim, setBossAnim] = useState(false);
+  const [questionNum, setQuestionNum] = useState(0);
+
+  const bosses = [
+    { name: "Vua Rong", emoji: "🐉", color: "#ef4444" },
+    { name: "Ho Bong Toi", emoji: "🐯", color: "#8b5cf6" },
+    { name: "Phuong Hoang Bao", emoji: "🦅", color: "#f5a623" },
+  ];
+
+  // Build a stable shuffled question list ONCE on mount — never changes.
+  // Storing as state (not memo) guarantees it never rebuilds on re-render.
+  const [questions] = useState(() => {
+    const shuffled = shuffle([...vocab]);
+    return shuffled.map(function(word) {
+      var pool = shuffled.filter(function(w) { return w.en !== word.en; });
+      var wrongs = shuffle(pool).slice(0, 3);
+      // choices and correct are locked together at creation time
+      var choices = shuffle([word, ...wrongs]);
+      return { word: word, choices: choices };
+    });
+  });
+
+  const q = questions[questionNum % questions.length];
+  const current = q.word;
+  const choices = q.choices;
+  const boss = bosses[Math.floor(questionNum / 5) % bosses.length];
+
+  const handleChoice = (choice) => {
+    if (selected) return;
+    setSelected(choice.en);
+    const correct = choice.en === current.en;
+    if (correct) {
+      onXP(20);
+      const newHp = bossHp - 1;
+      setBossHp(newHp);
+      setBossAnim(true);
+      setTimeout(() => setBossAnim(false), 500);
+      if (newHp <= 0) { setPhase("won"); return; }
+    } else {
+      onMiss();
+      const newP = playerHp - 1;
+      setPlayerHp(newP);
+      if (newP <= 0) { setPhase("lost"); return; }
+    }
+    setTimeout(() => { setSelected(null); setQuestionNum(n => n + 1); }, 900);
+  };
+
+  if (phase === "won") return (
+    <div className="screen fade-in" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "80vh", textAlign: "center", gap: "20px" }}>
+      <div style={{ fontSize: "80px" }} className="float">🏆</div>
+      <div style={{ fontFamily: "'Baloo 2', sans-serif", fontSize: "32px", fontWeight: 900, color: "var(--gold)" }}>CHIEN THANG!</div>
+      <div style={{ color: "var(--text2)" }}>Ban da danh bai {boss.name}!</div>
+      <button className="btn-primary" onClick={onBack}>Quay ve Menu</button>
+    </div>
+  );
+
+  if (phase === "lost") return (
+    <div className="screen fade-in" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "80vh", textAlign: "center", gap: "20px" }}>
+      <div style={{ fontSize: "80px" }}>💀</div>
+      <div style={{ fontFamily: "'Baloo 2', sans-serif", fontSize: "32px", fontWeight: 900, color: "var(--red)" }}>THAT BAI</div>
+      <div style={{ color: "var(--text2)" }}>Co len — lan sau se duoc!</div>
+      <button className="btn-primary" onClick={onBack}>Quay ve Menu</button>
+    </div>
+  );
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Bo chay</button>
+        <div style={{ fontWeight: 800, color: "var(--gold)" }}>Danh Boss</div>
+        <div style={{ display: "flex", gap: "3px" }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <span key={i} style={{ fontSize: "16px", opacity: i < playerHp ? 1 : 0.25 }}>❤️</span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        background: boss.color + "22",
+        border: "2px solid " + boss.color + "55", borderRadius: "20px", padding: "20px",
+        textAlign: "center", marginBottom: "16px"
+      }}>
+        <div style={{ fontSize: "72px", animation: bossAnim ? "bossShake 0.4s ease" : "float 3s ease-in-out infinite" }}>{boss.emoji}</div>
+        <div style={{ fontWeight: 900, fontSize: "18px", color: boss.color, fontFamily: "'Baloo 2', sans-serif" }}>{boss.name}</div>
+        <div style={{ marginTop: "10px" }}>
+          <div className="boss-hp-bar">
+            <div className="boss-hp-fill" style={{ width: ((bossHp / BOSS_HP) * 100) + "%" }} />
+          </div>
+          <div style={{ fontSize: "12px", color: "var(--text2)", marginTop: "4px" }}>HP: {bossHp}/{BOSS_HP}</div>
+        </div>
+      </div>
+
+      <div className="vocab-card" style={{ marginBottom: "16px" }}>
+        <div style={{ fontSize: "56px", marginBottom: "8px" }}>{current.emoji}</div>
+        <div style={{ fontSize: "24px", fontWeight: 900, fontFamily: "'Baloo 2', sans-serif" }}>{current.vi}</div>
+        <div style={{ fontSize: "12px", color: "var(--text2)" }}>Tu nay nghia la gi?</div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {choices.map(function(c, i) {
+          var cls = "choice-btn";
+          if (selected) {
+            if (c.en === current.en) cls += " correct";
+            else if (selected === c.en) cls += " wrong";
+          }
+          return (
+            <button
+              key={i}
+              className={cls}
+              onClick={function() { handleChoice(c); }}
+              disabled={!!selected}
+              style={{ fontSize: "16px", fontWeight: 700, padding: "14px" }}
+            >
+              {c.emoji} {c.en}
+              {showTranslations && <span style={{ fontSize: "11px", color: "var(--gold)", display: "block" }}>({c.vi})</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ------------- MIXED MODE -------------
+const MixedMode = ({ vocab, onBack, onXP, onMiss, combo, showTranslations }) => {
+  const modes = ["vocabulary", "grammar", "spelling", "conversation"];
+  const [currentMode, setCurrentMode] = useState(randFrom(modes));
+
+  const switchMode = () => setCurrentMode(randFrom(modes));
+
+  if (currentMode === "vocabulary") return <VocabMode vocab={vocab} onBack={onBack} onXP={(x) => { onXP(x); switchMode(); }} onMiss={onMiss} combo={combo} showTranslations={showTranslations} />;
+  if (currentMode === "grammar") return <GrammarMode onBack={onBack} onXP={(x) => { onXP(x); switchMode(); }} onMiss={onMiss} />;
+  if (currentMode === "spelling") return <SpellingMode vocab={vocab} onBack={onBack} onXP={(x) => { onXP(x); switchMode(); }} onMiss={onMiss} combo={combo} showTranslations={showTranslations} />;
+  return <ConversationMode onBack={onBack} onXP={(x) => { onXP(x); switchMode(); }} onMiss={onMiss} />;
+};
+
+// ============================================================
+// PRONOUNCE PANEL — play at speeds + mic grading
+// ============================================================
+const PronouncePanel = ({ word }) => {
+  const [playing, setPlaying] = useState(null);
+  const [recording, setRecording] = useState(false);
+  const [grade, setGrade] = useState(null);
+  const [recError, setRecError] = useState(false);
+  const cleanWord = getSimpleEn(word);
+
+  const playAt = (speed) => {
+    try {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      setPlaying(speed);
+      const utt = new SpeechSynthesisUtterance(cleanWord);
+      utt.lang = "en-US";
+      utt.rate = speed;
+      utt.onend = () => setPlaying(null);
+      window.speechSynthesis.speak(utt);
+    } catch(e) { setPlaying(null); }
+  };
+
+  const recordAndGrade = () => {
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Rec) { setRecError(true); return; }
+    const rec = new Rec();
+    rec.lang = "en-US";
+    rec.maxAlternatives = 5;
+    setRecording(true);
+    setGrade(null);
+    setRecError(false);
+    rec.onresult = (e) => {
+      setRecording(false);
+      const target = cleanWord.toLowerCase();
+      const heards = Array.from(e.results[0]).map(r => r.transcript.toLowerCase().trim());
+      const best = heards.reduce((max, h) => Math.max(max, calcPronScore(h, target)), 0);
+      setGrade(best);
+    };
+    rec.onerror = () => { setRecording(false); setGrade(0); };
+    rec.start();
+  };
+
+  const gradeInfo = grade === null ? null
+    : grade >= 90 ? { emoji: "🌟", label: "Xuất sắc!", color: "#00b894" }
+    : grade >= 75 ? { emoji: "😊", label: "Tốt lắm!", color: "#6c63ff" }
+    : grade >= 55 ? { emoji: "🙂", label: "Được rồi!", color: "#f5a623" }
+    : grade >= 35 ? { emoji: "😅", label: "Thử lại!", color: "#e09310" }
+    : { emoji: "😬", label: "Cần luyện!", color: "#ef4444" };
+
+  const speeds = [
+    { label: "🐢 Chậm", val: 0.5 },
+    { label: "🐌 Vừa", val: 0.75 },
+    { label: "▶ Bình thường", val: 1.0 },
+    { label: "⚡ Nhanh", val: 1.3 },
+  ];
+
+  return (
+    <div style={{
+      background: "rgba(108,99,255,0.07)", border: "1px solid rgba(108,99,255,0.22)",
+      borderRadius: "14px", padding: "12px", marginTop: "10px"
+    }}>
+      <div style={{ fontSize: "10px", color: "#a09a8a", fontWeight: 700, marginBottom: "8px", letterSpacing: "0.5px" }}>
+        🔊 LUYỆN PHÁT ÂM
+      </div>
+      <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", marginBottom: "10px" }}>
+        {speeds.map(s => (
+          <button key={s.val} onClick={() => playAt(s.val)}
+            style={{
+              background: playing === s.val ? "linear-gradient(135deg,#6c63ff,#a855f7)" : "var(--bg3)",
+              color: playing === s.val ? "#fff" : "var(--text2)",
+              border: `1px solid ${playing === s.val ? "#6c63ff" : "var(--border)"}`,
+              borderRadius: "9px", padding: "5px 9px", fontSize: "10px",
+              fontWeight: 700, cursor: "pointer", transition: "all 0.15s"
+            }}>{s.label}</button>
+        ))}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+        <button onClick={recordAndGrade} disabled={recording}
+          style={{
+            background: recording ? "linear-gradient(135deg,#ef4444,#dc2626)" : "linear-gradient(135deg,#e84393,#b5179e)",
+            color: "#fff", border: "none", borderRadius: "11px",
+            padding: "7px 13px", fontSize: "11px", fontWeight: 800,
+            cursor: recording ? "wait" : "pointer",
+            animation: recording ? "heartbeat 0.8s ease infinite" : "none"
+          }}>
+          {recording ? "🎤 Đang nghe..." : "🎤 Nói thử → Chấm điểm"}
+        </button>
+        {gradeInfo && (
+          <div style={{
+            background: `${gradeInfo.color}20`, border: `1px solid ${gradeInfo.color}`,
+            borderRadius: "10px", padding: "5px 10px",
+            display: "flex", alignItems: "center", gap: "6px"
+          }}>
+            <span style={{ fontSize: "16px" }}>{gradeInfo.emoji}</span>
+            <div>
+              <div style={{ fontSize: "12px", fontWeight: 900, color: gradeInfo.color }}>{grade}%</div>
+              <div style={{ fontSize: "9px", color: "var(--text2)" }}>{gradeInfo.label}</div>
+            </div>
+          </div>
+        )}
+        {recError && <span style={{ fontSize: "10px", color: "var(--text2)" }}>⚠️ Cần cho phép microphone</span>}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// MINI GAME BURST — 5-question quick game between lesson batches
+// ============================================================
+const MiniGameBurst = ({ words, allVocab, onComplete }) => {
+  const TOTAL = 5;
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(8);
+  const [questions] = useState(() => {
+    return Array.from({length: TOTAL}, () => {
+      const correct = randFrom(words);
+      const wrongs = shuffle(allVocab.filter(w => w.en !== correct.en)).slice(0, 3);
+      return { correct, choices: shuffle([correct, ...wrongs]) };
+    });
+  });
+
+  const q = questions[qIdx];
+
+  useEffect(() => {
+    if (done || !q || selected !== null) return;
+    if (timeLeft <= 0) { handleAnswer(null); return; }
+    const t = setTimeout(() => setTimeLeft(x => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timeLeft, qIdx, done, selected]);
+
+  const handleAnswer = (choice) => {
+    if (selected !== null && choice !== null) return;
+    setSelected(choice || "__timeout__");
+    const correct = choice?.en === q.correct.en;
+    if (correct) setScore(s => s + 1);
+    setTimeout(() => {
+      setSelected(null);
+      setTimeLeft(8);
+      if (qIdx + 1 >= TOTAL) { setDone(true); }
+      else { setQIdx(i => i + 1); }
+    }, 900);
+  };
+
+  if (done) {
+    const pct = Math.round((score / TOTAL) * 100);
+    const star = pct >= 80 ? "⭐⭐⭐" : pct >= 60 ? "⭐⭐" : "⭐";
+    return (
+      <div style={{ padding: "30px 16px", textAlign: "center" }} className="pop-in">
+        <div style={{ fontSize: "64px", marginBottom: "12px" }}>
+          {pct >= 80 ? "🎉" : pct >= 60 ? "😊" : "💪"}
+        </div>
+        <div style={{ fontSize: "26px", fontWeight: 900, marginBottom: "8px" }}>{star}</div>
+        <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--gold)", marginBottom: "4px" }}>
+          {score} / {TOTAL}
+        </div>
+        <div style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>
+          {pct >= 80 ? "Xuất sắc! Tiếp tục nào! 🚀" : pct >= 60 ? "Tốt lắm! Cố lên! 💪" : "Luyện thêm — bạn sẽ làm được! 🌟"}
+        </div>
+        <button className="btn-primary" style={{ width: "100%" }} onClick={onComplete}>
+          Tiếp theo →
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fade-in">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <div style={{ fontSize: "12px", color: "var(--text2)", fontWeight: 700 }}>Câu {qIdx + 1} / {TOTAL}</div>
+        <div style={{
+          background: timeLeft <= 3 ? "var(--red)" : "var(--bg3)",
+          color: timeLeft <= 3 ? "#fff" : "var(--text)",
+          borderRadius: "10px", padding: "4px 12px", fontSize: "14px", fontWeight: 800,
+          transition: "background 0.3s"
+        }}>⏱ {timeLeft}s</div>
+      </div>
+      <div style={{ display: "flex", gap: "4px", marginBottom: "20px" }}>
+        {Array.from({length: TOTAL}).map((_, i) => (
+          <div key={i} style={{
+            flex: 1, height: "4px", borderRadius: "2px", transition: "background 0.3s",
+            background: i < qIdx ? "var(--jade)" : i === qIdx ? "var(--gold)" : "var(--bg3)"
+          }} />
+        ))}
+      </div>
+      <div className="vocab-card pop-in" style={{ marginBottom: "20px", textAlign: "center", padding: "24px" }}>
+        <div style={{ fontSize: "56px", marginBottom: "10px" }}>{q.correct.emoji}</div>
+        <div style={{ fontSize: "24px", fontWeight: 900, fontFamily: "'Baloo 2', sans-serif", color: "var(--gold)" }}>
+          {q.correct.vi}
+        </div>
+        <div style={{ fontSize: "12px", color: "var(--text2)", marginTop: "4px" }}>= tiếng Anh là gì? ⚡</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+        {q.choices.map((c, i) => {
+          const isSel = selected === c || (selected === "__timeout__");
+          const isCorrect = c.en === q.correct.en;
+          const showCorrect = selected !== null && isCorrect;
+          const showWrong = selected === c && !isCorrect;
+          return (
+            <button key={i}
+              onClick={() => handleAnswer(c)}
+              disabled={selected !== null}
+              style={{
+                background: showCorrect ? "rgba(0,184,148,0.2)" : showWrong ? "rgba(239,68,68,0.15)" : "var(--bg3)",
+                border: `2px solid ${showCorrect ? "var(--jade)" : showWrong ? "var(--red)" : "var(--border)"}`,
+                borderRadius: "14px", padding: "14px 10px",
+                color: showCorrect ? "var(--jade)" : showWrong ? "var(--red)" : "var(--text)",
+                fontSize: "13px", fontWeight: 700,
+                transition: "all 0.15s", cursor: selected ? "default" : "pointer",
+                textAlign: "center"
+              }}>
+              {getSimpleEn(c.en)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// LESSON WORD CARD — expandable card with pronunciation practice
+// ============================================================
+const LessonWordCard = ({ word, unitColor, autoExpand }) => {
+  const [expanded, setExpanded] = useState(autoExpand || false);
+  const toggle = () => {
+    if (!expanded) speak(getSimpleEn(word.en));
+    setExpanded(e => !e);
+  };
+  return (
+    <div onClick={toggle}
+      style={{
+        background: "var(--bg2)", border: `2px solid ${expanded ? unitColor : "var(--border)"}`,
+        borderRadius: "16px", padding: "14px 16px", cursor: "pointer",
+        transition: "all 0.2s", userSelect: "none"
+      }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <span style={{ fontSize: "34px", flexShrink: 0 }}>{word.emoji}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 900, fontSize: "19px" }}>{getSimpleEn(word.en)}</div>
+          {word.en.includes(" / ") && (
+            <div style={{ fontSize: "11px", color: "var(--text2)" }}>
+              cũng đúng: {word.en.split(" / ").slice(1).join(", ")}
+            </div>
+          )}
+          <div style={{ fontSize: "13px", color: unitColor, fontWeight: 700, marginTop: "2px" }}>{word.vi}</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "center" }}>
+          <button
+            onClick={e => { e.stopPropagation(); speak(getSimpleEn(word.en)); }}
+            style={{
+              background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "10px",
+              padding: "6px 10px", fontSize: "17px", cursor: "pointer"
+            }}>🔊</button>
+          <div style={{ fontSize: "11px", color: "var(--text2)" }}>{expanded ? "▲" : "▼"}</div>
+        </div>
+      </div>
+      {expanded && <PronouncePanel word={word.en} />}
+    </div>
+  );
+};
+
+// ============================================================
+// LESSON PATH MENU — shows all lesson units with progress
+// ============================================================
+const LessonPathMenu = ({ onBack, onUnit, xp, completedUnits }) => (
+  <div className="screen fade-in" style={{ paddingTop: "16px", paddingBottom: "30px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+      <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+      <div>
+        <div style={{ fontWeight: 800, fontSize: "16px" }}>📖 Lộ Trình Học</div>
+        <div style={{ fontSize: "11px", color: "var(--text2)" }}>Học bài → mini game → tiếp tục! 🚀</div>
+      </div>
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {LESSON_UNITS.map((unit, i) => {
+        const locked = xp < unit.unlockXP;
+        const done = completedUnits.includes(unit.id);
+        const wordCount = unit.batches.reduce((acc, b) => acc + b.wordKeys.length, 0);
+        return (
+          <div key={unit.id}
+            onClick={() => !locked && onUnit(unit)}
+            style={{
+              background: done ? `${unit.color}12` : "var(--bg2)",
+              border: `2px solid ${done ? unit.color : locked ? "var(--border)" : `${unit.color}55`}`,
+              borderRadius: "18px", padding: "16px",
+              cursor: locked ? "not-allowed" : "pointer",
+              opacity: locked ? 0.55 : 1, transition: "all 0.2s",
+              display: "flex", alignItems: "center", gap: "14px"
+            }}>
+            <div style={{
+              width: "54px", height: "54px", borderRadius: "16px", flexShrink: 0,
+              background: locked ? "var(--bg3)" : `${unit.color}22`,
+              border: `2px solid ${locked ? "var(--border)" : unit.color}`,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px"
+            }}>{locked ? "🔒" : unit.emoji}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: "15px" }}>{unit.title}</div>
+              <div style={{ fontSize: "11px", color: "var(--text2)", marginTop: "2px" }}>
+                {unit.batches.length} nhóm · {wordCount} từ · {unit.song.title}
+              </div>
+              {locked && (
+                <div style={{ fontSize: "11px", color: unit.color, marginTop: "3px", fontWeight: 700 }}>
+                  🔒 Cần {unit.unlockXP} XP để mở khóa
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: "20px" }}>
+              {done ? "✅" : locked ? "" : "→"}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// ============================================================
+// LESSON UNIT SCREEN
+const LessonUnitScreen = ({ unit, allVocab, onBack, onComplete, onXP }) => {
+  const [phase, setPhase] = useState("song");
+  const [batchIdx, setBatchIdx] = useState(0);
+  const [songLineIdx, setSongLineIdx] = useState(-1);
+  const [songPlaying, setSongPlaying] = useState(false);
+  const [songRate, setSongRate] = useState(0.8);
+  const [xpEarned, setXpEarned] = useState(0);
+  const timers = useRef([]);
+
+  const getBatchWords = (bi) => {
+    var keys = (unit.batches[bi] && unit.batches[bi].wordKeys) ? unit.batches[bi].wordKeys : [];
+    return keys.map(function(key) {
+      return allVocab.find(function(w) { return w.en === key || getSimpleEn(w.en) === getSimpleEn(key); });
+    }).filter(Boolean);
+  };
+
+  var allUnitWords = [];
+  for (var ui = 0; ui < unit.batches.length; ui++) {
+    var bw = getBatchWords(ui);
+    for (var wi = 0; wi < bw.length; wi++) allUnitWords.push(bw[wi]);
+  }
+
+  var totalBatches = unit.batches.length;
+  var phaseNum = 0;
+  if (phase !== "song") {
+    var pn = parseInt(phase.split("_")[1]);
+    phaseNum = phase.indexOf("learn_") === 0 ? pn * 2 + 1 : pn * 2 + 2;
+  }
+  var totalPhases = 1 + totalBatches * 2;
+  var progress = Math.min(1, phaseNum / totalPhases);
+
+  var cancelTimers = function() {
+    for (var ti = 0; ti < timers.current.length; ti++) clearTimeout(timers.current[ti]);
+    timers.current = [];
+  };
+
+  var stopSong = function() {
+    cancelTimers();
+    if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch(e) {} }
+    setSongPlaying(false);
+    setSongLineIdx(-1);
+  };
+
+  useEffect(function() { return function() { stopSong(); }; }, []);
+
+  var playSong = function() {
+    stopSong();
+    setSongPlaying(true);
+    var songLines = unit.song.lines;
+    var rate = songRate;
+
+    if (!window.speechSynthesis) {
+      for (var fi = 0; fi < songLines.length; fi++) {
+        (function(idx) {
+          var t = setTimeout(function() { setSongLineIdx(idx); }, idx * 2000);
+          timers.current.push(t);
+        })(fi);
+      }
+      var endT = setTimeout(function() { setSongPlaying(false); setSongLineIdx(-1); }, songLines.length * 2000 + 500);
+      timers.current.push(endT);
+      return;
+    }
+
+    var doLine = function(idx) {
+      if (idx >= songLines.length) { setSongPlaying(false); setSongLineIdx(-1); return; }
+      setSongLineIdx(idx);
+      var raw = songLines[idx].text;
+      var txt = "";
+      for (var ci = 0; ci < raw.length; ci++) {
+        var code = raw.charCodeAt(ci);
+        if (code >= 0xD800 && code <= 0xDFFF) continue;
+        if (code === 0x2014) { txt += " "; continue; }
+        txt += raw[ci];
+      }
+      txt = txt.trim();
+      try {
+        var utt = new SpeechSynthesisUtterance(txt);
+        utt.lang = "en-US";
+        utt.rate = rate;
+        utt.onend = function() {
+          var t = setTimeout(function() { doLine(idx + 1); }, 400);
+          timers.current.push(t);
+        };
+        utt.onerror = function() {
+          var t = setTimeout(function() { doLine(idx + 1); }, 400);
+          timers.current.push(t);
+        };
+        window.speechSynthesis.speak(utt);
+      } catch(e) {
+        var t = setTimeout(function() { doLine(idx + 1); }, 800);
+        timers.current.push(t);
+      }
+    };
+    doLine(0);
+  };
+
+  var handleBack = function() { stopSong(); onBack(); };
+  var handleSkip = function() { stopSong(); setPhase("learn_0"); };
+  var handlePlay = function() { if (songPlaying) { stopSong(); } else { playSong(); } };
+  var handleRate = function(r) { setSongRate(r); };
+
+  if (phase === "song") {
+    return (
+      <div className="screen fade-in" style={{ paddingTop: "16px", paddingBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+          <button onClick={handleBack} style={{ background: "var(--bg3)", border: "2px solid var(--border)", borderRadius: "10px", padding: "9px 13px", fontSize: "14px", fontWeight: 800, color: "var(--text)", cursor: "pointer" }}>X Thoat</button>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: "14px" }}>{unit.emoji} {unit.title}</div>
+            <div style={{ fontSize: "10px", color: "var(--text2)" }}>Buoc 1 - Bai hat & tu can hoc</div>
+          </div>
+          <button onClick={handleSkip} style={{ background: unit.color, color: "#000", border: "none", borderRadius: "10px", padding: "9px 14px", fontSize: "13px", fontWeight: 800, cursor: "pointer" }}>Hoc tu</button>
+        </div>
+
+        <div className="progress-bar" style={{ marginBottom: "14px" }}>
+          <div className="progress-fill" style={{ width: (progress * 100) + "%" }} />
+        </div>
+
+        <div style={{ background: "var(--bg2)", border: "2px solid var(--border)", borderRadius: "14px", padding: "12px 14px", marginBottom: "12px" }}>
+          <div style={{ fontSize: "11px", color: unit.color, fontWeight: 800, marginBottom: "8px" }}>TU BAN SE HOC TRONG BAI NAY</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {allUnitWords.map(function(w, i) {
+              return (
+                <button key={i} onClick={function() { speak(getSimpleEn(w.en)); }} style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "4px 10px", display: "flex", alignItems: "center", gap: "5px", cursor: "pointer" }}>
+                  <span style={{ fontSize: "14px" }}>{w.emoji}</span>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}>{getSimpleEn(w.en)}</div>
+                    <div style={{ fontSize: "10px", color: unit.color }}>{w.vi}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: "10px", color: "var(--text2)", marginTop: "8px" }}>Nhan moi tu de nghe phat am</div>
+        </div>
+
+        <div style={{ background: "var(--bg2)", border: "2px solid var(--border)", borderRadius: "14px", padding: "14px", marginBottom: "12px" }}>
+          <div style={{ textAlign: "center", marginBottom: "10px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: unit.color }}>{unit.song.title}</div>
+          </div>
+          {unit.song.lines.map(function(line, i) {
+            return (
+              <div key={i} style={{ fontSize: "13px", lineHeight: "1.85", padding: "3px 8px", borderRadius: "6px", background: songLineIdx === i ? unit.color + "30" : "transparent", color: songLineIdx === i ? unit.color : "var(--text)", fontWeight: songLineIdx === i ? 800 : 500, transition: "all 0.3s" }}>{line.text}</div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px", justifyContent: "center" }}>
+          <span style={{ fontSize: "12px" }}>Chom:</span>
+          {[{l:"Cham",v:0.55},{l:"Vua",v:0.8},{l:"Nhanh",v:1.1}].map(function(s) {
+            return (
+              <button key={s.v} onClick={function() { handleRate(s.v); }} style={{ background: songRate === s.v ? unit.color : "var(--bg3)", color: songRate === s.v ? "#000" : "var(--text2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "5px 12px", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>{s.l}</button>
+            );
+          })}
+        </div>
+
+        <button onClick={handlePlay} style={{ width: "100%", marginBottom: "10px", background: songPlaying ? "#ef4444" : unit.color, color: songPlaying ? "#fff" : "#000", border: "none", borderRadius: "14px", padding: "14px", fontSize: "15px", fontWeight: 800, cursor: "pointer" }}>
+          {songPlaying ? "Dung lai" : "Phat bai hat"}
+        </button>
+
+        <button onClick={handleSkip} style={{ width: "100%", background: "var(--bg3)", border: "2px solid var(--border)", borderRadius: "14px", padding: "12px", fontSize: "14px", fontWeight: 800, color: unit.color, cursor: "pointer" }}>
+          Bo qua bai hat - Bat dau hoc tu vung
+        </button>
+      </div>
+    );
+  }
+
+  if (phase.indexOf("learn_") === 0) {
+    var bIdx = parseInt(phase.split("_")[1]);
+    var batch = unit.batches[bIdx];
+    var batchWords = getBatchWords(bIdx);
+    return (
+      <div className="screen fade-in" style={{ paddingTop: "16px", paddingBottom: "30px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+          <button className="btn-ghost" onClick={function() { bIdx === 0 ? setPhase("song") : setPhase("game_" + (bIdx - 1)); }} style={{ padding: "8px 14px", fontSize: "14px" }}>Quay lai</button>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "15px" }}>{batch ? batch.title : "Tu vung"}</div>
+            <div style={{ fontSize: "11px", color: "var(--text2)" }}>Nhom {bIdx + 1} / {totalBatches}</div>
+          </div>
+        </div>
+        <div className="progress-bar" style={{ marginBottom: "20px" }}>
+          <div className="progress-fill" style={{ width: (progress * 100) + "%" }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+          {batchWords.map(function(w, i) { return <LessonWordCard key={w.en + i} word={w} unitColor={unit.color} />; })}
+        </div>
+        <button className="btn-primary" style={{ width: "100%" }} onClick={function() { setBatchIdx(bIdx); setPhase("game_" + bIdx); }}>
+          Mini game
+        </button>
+      </div>
+    );
+  }
+
+  if (phase.indexOf("game_") === 0) {
+    var bIdx2 = parseInt(phase.split("_")[1]);
+    var batchWords2 = getBatchWords(bIdx2);
+    var isLast = bIdx2 >= totalBatches - 1;
+    return (
+      <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+          <button className="btn-ghost" onClick={function() { setPhase("learn_" + bIdx2); }} style={{ padding: "8px 14px", fontSize: "14px" }}>Quay lai</button>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "15px" }}>Mini Game!</div>
+            <div style={{ fontSize: "11px", color: "var(--text2)" }}>Nhom {bIdx2 + 1} / {totalBatches}</div>
+          </div>
+        </div>
+        <div className="progress-bar" style={{ marginBottom: "20px" }}>
+          <div className="progress-fill" style={{ width: (progress * 100) + "%" }} />
+        </div>
+        <MiniGameBurst words={batchWords2} allVocab={allVocab} onComplete={function() {
+          onXP(40); setXpEarned(function(x) { return x + 40; });
+          if (isLast) { setPhase("complete"); } else { setBatchIdx(bIdx2 + 1); setPhase("learn_" + (bIdx2 + 1)); }
+        }} />
+      </div>
+    );
+  }
+
+  var bonusXP = 120;
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "40px", textAlign: "center", paddingBottom: "40px" }}>
+      <div style={{ fontSize: "80px", marginBottom: "16px" }} className="float">🎉</div>
+      <div style={{ fontSize: "28px", fontWeight: 900, marginBottom: "6px" }}>Hoan thanh roi!</div>
+      <div style={{ fontSize: "18px", fontWeight: 800, marginBottom: "4px", color: unit.color }}>{unit.emoji} {unit.title}</div>
+      <div style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Ban da hoc xong bai nay!</div>
+      <div style={{ background: "var(--bg2)", border: "2px solid var(--gold)", borderRadius: "20px", padding: "20px", marginBottom: "28px", display: "inline-block" }}>
+        <div style={{ fontSize: "34px", fontWeight: 900, color: "var(--gold)" }}>+{xpEarned + bonusXP} XP</div>
+        <div style={{ fontSize: "12px", color: "var(--text2)" }}>thuong hoan thanh bai hoc</div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "320px", margin: "0 auto" }}>
+        <button className="btn-primary" onClick={function() { onXP(bonusXP); onComplete(unit.id); }}>Ve menu chinh</button>
+        <button className="btn-ghost" onClick={function() { setPhase("song"); setSongLineIdx(-1); setXpEarned(0); setBatchIdx(0); }}>Hoc lai tu dau</button>
+      </div>
+    </div>
+  );
+};
+
+// ------------- LEADERBOARD -------------
+const LeaderboardScreen = ({ currentPlayer, currentXP, onBack, onAddPlayer }) => {
+  const [board, setBoard] = useState(() => {
+    const saved = load("leaderboard", []);
+    return saved;
+  });
+  const [addingName, setAddingName] = useState("");
+  const [addingXP, setAddingXP] = useState("");
+
+  const allEntries = [...board, { name: currentPlayer.name, xp: currentXP, avatar: currentPlayer.avatar, isCurrent: true }]
+    .sort((a, b) => b.xp - a.xp);
+
+  const medals = ["🥇", "🥈", "🥉"];
+
+  const addFamilyMember = () => {
+    if (!addingName.trim() || !addingXP) return;
+    const updated = [...board, { name: addingName.trim(), xp: parseInt(addingXP), avatar: Math.floor(Math.random() * 12) }];
+    save("leaderboard", updated);
+    setBoard(updated);
+    setAddingName(""); setAddingXP("");
+  };
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+        <div style={{ fontWeight: 800, fontSize: "18px" }}>🏆 Bảng Xếp Hạng</div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
+        {allEntries.slice(0, 10).map((entry, i) => {
+          const z = ZODIAC_ANIMALS[entry.avatar ?? 0];
+          const tier = getTier(entry.xp);
+          return (
+            <div key={i} style={{
+              background: entry.isCurrent ? "rgba(245,166,35,0.15)" : "var(--bg2)",
+              border: `1px solid ${entry.isCurrent ? "var(--gold)" : "var(--border)"}`,
+              borderRadius: "16px", padding: "14px 16px",
+              display: "flex", alignItems: "center", gap: "12px"
+            }}>
+              <div style={{ fontSize: "22px", minWidth: "30px", textAlign: "center" }}>
+                {i < 3 ? medals[i] : `#${i + 1}`}
+              </div>
+              <div style={{ fontSize: "24px" }}>{z.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 800, fontSize: "14px" }}>
+                  {entry.name} {entry.isCurrent && <span style={{ fontSize: "11px", color: "var(--gold)" }}>(Bạn)</span>}
+                </div>
+                <div style={{ fontSize: "11px", color: tier.color }}>{tier.tier}</div>
+              </div>
+              <div style={{ fontWeight: 900, color: "var(--gold)", fontFamily: "'Baloo 2', sans-serif" }}>
+                {entry.xp} XP
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Thêm thành viên gia đình */}
+      <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "20px", padding: "18px" }}>
+        <div style={{ fontWeight: 800, marginBottom: "12px" }}>➕ Thêm thành viên gia đình</div>
+        <input className="answer-input" placeholder="Tên" value={addingName} onChange={e => setAddingName(e.target.value)} style={{ marginBottom: "10px" }} />
+        <input className="answer-input" type="number" placeholder="Điểm XP của họ" value={addingXP} onChange={e => setAddingXP(e.target.value)} style={{ marginBottom: "10px" }} />
+        <button className="btn-primary" style={{ width: "100%" }} onClick={addFamilyMember}>Thêm vào bảng</button>
+      </div>
+    </div>
+  );
+};
+
+// ------------- SETTINGS / UPLOAD -------------
+const APP_VERSION = "3.1";
+
+const SettingsScreen = ({ onBack, onVocabLoaded, customVocab, speechRate, onRate, onResetProgress, onResetFull }) => {
+  const [status, setStatus] = useState(null);
+  const [confirmReset, setConfirmReset] = useState(null); // null | "progress" | "full"
+  const fileRef = useRef(null);
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        let data;
+        if (file.name.endsWith(".json")) {
+          data = JSON.parse(ev.target.result);
+        } else if (file.name.endsWith(".csv")) {
+          const lines = ev.target.result.trim().split("\n");
+          const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+          const viIdx = headers.findIndex(h => h.includes("vi") || h.includes("viet"));
+          const enIdx = headers.findIndex(h => h.includes("en"));
+          const emojiIdx = headers.findIndex(h => h.includes("emoji"));
+          const catIdx = headers.findIndex(h => h.includes("cat"));
+          data = lines.slice(1).filter(l => l.trim()).map(line => {
+            const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ""));
+            return {
+              vi: cols[viIdx] || cols[0] || "",
+              en: cols[enIdx] || cols[1] || "",
+              emoji: cols[emojiIdx] || "📝",
+              category: cols[catIdx] || "Custom",
+              img: null,
+            };
+          }).filter(w => w.vi && w.en);
+        }
+        if (Array.isArray(data) && data.length > 0) {
+          onVocabLoaded(data);
+          setStatus(`✅ Đã tải ${data.length} từ!`);
+        } else setStatus("❌ Không tìm thấy từ hợp lệ.");
+      } catch (err) {
+        setStatus("❌ Lỗi đọc tệp. Kiểm tra định dạng.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  return (
+    <div className="screen fade-in" style={{ paddingTop: "16px", paddingBottom: "40px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+        <button className="btn-ghost" onClick={onBack} style={{ padding: "8px 14px", fontSize: "14px" }}>← Quay lại</button>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: "18px" }}>⚙️ Cài đặt</div>
+          <div style={{ fontSize: "10px", color: "var(--text2)" }}>Phiên bản {APP_VERSION}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
+          <SpeedControl rate={speechRate} onRate={onRate} />
+        </div>
+
+        <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
+          <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "8px" }}>📤 Tải từ vựng tùy chỉnh</div>
+          <div style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "16px", lineHeight: "1.6" }}>
+            Tải tệp CSV hoặc JSON để thêm từ vựng của riêng bạn. <br />
+            <strong style={{ color: "var(--gold)" }}>Định dạng CSV:</strong> vi, en, emoji, category<br />
+            <strong style={{ color: "var(--gold)" }}>Định dạng JSON:</strong> [{"{"}"vi, en, emoji, category"{"}"}, ...]
+          </div>
+          <input ref={fileRef} type="file" accept=".csv,.json" onChange={handleFile} style={{ display: "none" }} />
+          <button className="btn-primary" style={{ width: "100%" }} onClick={() => fileRef.current?.click()}>
+            📂 Chọn tệp (CSV hoặc JSON)
+          </button>
+          {status && (
+            <div style={{ marginTop: "12px", padding: "10px", background: "var(--bg3)", borderRadius: "10px", fontSize: "13px", fontWeight: 700 }}>
+              {status}
+            </div>
+          )}
+          {customVocab.length > 0 && (
+            <div style={{ marginTop: "12px", fontSize: "12px", color: "var(--jade)" }}>
+              ✅ Đã tải {customVocab.length} từ tùy chỉnh
+            </div>
+          )}
+        </div>
+
+        {/* ── RESET SECTION ── */}
+        <div style={{ background: "var(--bg2)", border: "1px solid #ef444444", borderRadius: "20px", padding: "20px" }}>
+          <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "4px" }}>🔄 Đặt lại / Bắt đầu lại</div>
+          <div style={{ fontSize: "12px", color: "var(--text2)", marginBottom: "16px" }}>
+            Xóa tiến trình hoặc tạo tài khoản mới hoàn toàn.
+          </div>
+
+          {confirmReset === null ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {/* Option 1 — reset progress only */}
+              <button
+                onClick={() => setConfirmReset("progress")}
+                style={{
+                  background: "rgba(245,166,35,0.1)", border: "1px solid var(--gold)",
+                  borderRadius: "12px", padding: "12px 16px", color: "var(--gold)",
+                  fontWeight: 700, fontSize: "14px", cursor: "pointer", textAlign: "left"
+                }}>
+                ♻️ Xóa tiến trình học
+                <div style={{ fontSize: "11px", color: "var(--text2)", fontWeight: 500, marginTop: "3px" }}>
+                  Giữ tên & avatar — xóa XP, bài học, XP streak
+                </div>
+              </button>
+              {/* Option 2 — full reset */}
+              <button
+                onClick={() => setConfirmReset("full")}
+                style={{
+                  background: "rgba(239,68,68,0.08)", border: "1px solid #ef4444",
+                  borderRadius: "12px", padding: "12px 16px", color: "#ef4444",
+                  fontWeight: 700, fontSize: "14px", cursor: "pointer", textAlign: "left"
+                }}>
+                🗑️ Xóa tất cả — bắt đầu từ đầu
+                <div style={{ fontSize: "11px", color: "var(--text2)", fontWeight: 500, marginTop: "3px" }}>
+                  Xóa mọi dữ liệu, quay về màn hình đăng ký
+                </div>
+              </button>
+            </div>
+          ) : (
+            /* Confirmation dialog */
+            <div style={{
+              background: "var(--bg3)", borderRadius: "14px", padding: "16px", textAlign: "center"
+            }}>
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>
+                {confirmReset === "full" ? "🗑️" : "♻️"}
+              </div>
+              <div style={{ fontWeight: 800, fontSize: "15px", marginBottom: "6px" }}>
+                {confirmReset === "full" ? "Xóa tất cả dữ liệu?" : "Xóa tiến trình học?"}
+              </div>
+              <div style={{ fontSize: "12px", color: "var(--text2)", marginBottom: "18px" }}>
+                {confirmReset === "full"
+                  ? "Không thể hoàn tác. Mọi thứ sẽ bị xóa."
+                  : "XP và bài học sẽ bị xóa. Tên & avatar giữ lại."}
+              </div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={() => setConfirmReset(null)}
+                  style={{
+                    flex: 1, background: "var(--bg2)", border: "1px solid var(--border)",
+                    borderRadius: "12px", padding: "12px", fontWeight: 700,
+                    fontSize: "14px", cursor: "pointer", color: "var(--text)"
+                  }}>Hủy</button>
+                <button
+                  onClick={() => {
+                    setConfirmReset(null);
+                    if (confirmReset === "full") onResetFull();
+                    else onResetProgress();
+                  }}
+                  style={{
+                    flex: 1,
+                    background: confirmReset === "full"
+                      ? "linear-gradient(135deg,#ef4444,#dc2626)"
+                      : "linear-gradient(135deg,#f5a623,#e09310)",
+                    border: "none", borderRadius: "12px", padding: "12px",
+                    color: "#fff", fontWeight: 800, fontSize: "14px", cursor: "pointer"
+                  }}>
+                  {confirmReset === "full" ? "Xóa hết" : "Xóa tiến trình"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
+          <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "8px" }}>🌐 Mẹo sử dụng đa nền tảng</div>
+          <div style={{ fontSize: "13px", color: "var(--text2)", lineHeight: "1.7" }}>
+            • <strong>iPhone Safari:</strong> Thêm vào màn hình chính để trải nghiệm tốt nhất<br />
+            • <strong>Android Chrome:</strong> Hoạt động tốt trên trình duyệt<br />
+            • <strong>Samsung Browser:</strong> Hoàn toàn tương thích<br />
+            • <strong>Máy tính:</strong> Dùng Chrome hoặc Firefox<br />
+            • Giọng đọc yêu cầu quyền truy cập trình duyệt
+          </div>
+        </div>
+
+        <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div style={{ fontWeight: 800, fontSize: "16px", marginBottom: "8px" }}>📖 Giới thiệu English Master Pro</div>
+            <div style={{
+              background: "var(--gold)", color: "#000", borderRadius: "8px",
+              padding: "2px 8px", fontSize: "11px", fontWeight: 800, flexShrink: 0
+            }}>v{APP_VERSION}</div>
+          </div>
+          <div style={{ fontSize: "13px", color: "var(--text2)", lineHeight: "1.7" }}>
+            Phiên bản {APP_VERSION} · Dành cho cộng đồng người Việt tại Sacramento, CA.<br />
+            Thiết kế cho thợ làm móng học tiếng Anh.<br />
+            Dự án gia đình <span style={{ color: "var(--gold)" }}>Biết Luật</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const [player, setPlayer] = useState(() => load("player", null));
+  const [xp, setXP] = useState(() => load("xp", 0));
+  const [hearts, setHearts] = useState(() => load("hearts", 5));
+  const [streak, setStreak] = useState(() => load("streak", 0));
+  const [combo, setCombo] = useState(0);
+  const [screen, setScreen] = useState(player ? "menu" : "welcome");
+  const [xpPopups, setXpPopups] = useState([]);
+  const [customVocab, setCustomVocab] = useState(() => load("customVocab", []));
+  const [speechRate, setSpeechRate] = useState(() => load("speechRate", 0.85));
+  const [showTranslations, setShowTranslations] = useState(() => load("showTranslations", false));
+  const [completedUnits, setCompletedUnits] = useState(() => load("completedUnits", []));
+  const [activeUnit, setActiveUnit] = useState(null);
+
+  const allVocab = [...VOCAB, ...customVocab];
+
+  useEffect(() => { window._empSpeechRate = speechRate; }, [speechRate]);
+
+  // Persist
+  useEffect(() => { if (player) save("player", player); }, [player]);
+  useEffect(() => { save("xp", xp); }, [xp]);
+  useEffect(() => { save("hearts", hearts); }, [hearts]);
+  useEffect(() => { save("streak", streak); }, [streak]);
+  useEffect(() => { save("customVocab", customVocab); }, [customVocab]);
+  useEffect(() => { save("speechRate", speechRate); }, [speechRate]);
+  useEffect(() => { save("showTranslations", showTranslations); }, [showTranslations]);
+  useEffect(() => { save("completedUnits", completedUnits); }, [completedUnits]);
+
+  // Heart regeneration (1 per 30 min)
+  useEffect(() => {
+    const lastRegen = load("lastRegen", Date.now());
+    const elapsed = Date.now() - lastRegen;
+    const regens = Math.floor(elapsed / (30 * 60 * 1000));
+    if (regens > 0 && hearts < 5) {
+      setHearts(h => Math.min(5, h + regens));
+      save("lastRegen", Date.now());
+    }
+  }, []);
+
+  const addXP = useCallback((amount) => {
+    setXP(x => x + amount);
+    setStreak(s => s + 1);
+    setCombo(c => c + 1);
+    // XP popup
+    const id = Date.now();
+    setXpPopups(p => [...p, { id, amount, x: 120 + Math.random() * 80 }]);
+    setTimeout(() => setXpPopups(p => p.filter(pp => pp.id !== id)), 1000);
+  }, []);
+
+  const handleMiss = useCallback(() => {
+    setHearts(h => Math.max(0, h - 1));
+    setCombo(0);
+    setStreak(0);
+  }, []);
+
+  const handleStart = ({ name, avatar }) => {
+    const p = { name, avatar };
+    setPlayer(p);
+    setScreen("menu");
+  };
+
+  // Reset progress only — keep name/avatar
+  const handleResetProgress = () => {
+    ["xp","hearts","streak","completedUnits","customVocab","leaderboard","showTranslations"]
+      .forEach(k => delete _store[k]);
+    setXP(0);
+    setHearts(5);
+    setStreak(0);
+    setCombo(0);
+    setCompletedUnits([]);
+    setCustomVocab([]);
+    setShowTranslations(false);
+    setScreen("menu");
+  };
+
+  // Full reset — delete everything, back to welcome
+  const handleResetFull = () => {
+    Object.keys(_store).forEach(k => delete _store[k]);
+    setPlayer(null);
+    setXP(0);
+    setHearts(5);
+    setStreak(0);
+    setCombo(0);
+    setCompletedUnits([]);
+    setCustomVocab([]);
+    setShowTranslations(false);
+    setActiveUnit(null);
+    setScreen("welcome");
+  };
+
+  if (screen === "welcome") return (
+    <>
+      <GlobalStyles />
+      <WelcomeScreen onStart={handleStart} />
+    </>
+  );
+
+  if (screen === "leaderboard") return (
+    <>
+      <GlobalStyles />
+      <LeaderboardScreen
+        currentPlayer={player}
+        currentXP={xp}
+        onBack={() => setScreen("menu")}
+      />
+    </>
+  );
+
+  if (screen === "settings") return (
+    <>
+      <GlobalStyles />
+      <SettingsScreen
+        onBack={() => setScreen("menu")}
+        onVocabLoaded={(words) => setCustomVocab(w => [...w, ...words])}
+        customVocab={customVocab}
+        speechRate={speechRate}
+        onRate={(r) => setSpeechRate(r)}
+        onResetProgress={handleResetProgress}
+        onResetFull={handleResetFull}
+      />
+    </>
+  );
+
+  // Floating control bar for all game screens
+  const FloatingSpeed = () => (
+    <div style={{
+      position: "fixed", bottom: "16px", left: "50%",
+      transform: "translateX(-50%)", zIndex: 9999,
+      display: "flex", alignItems: "center", gap: "6px",
+      background: "rgba(15,17,30,0.92)", backdropFilter: "blur(12px)",
+      borderRadius: "24px", padding: "6px 10px",
+      border: "1px solid rgba(255,255,255,0.12)",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.4)"
+    }}>
+      {/* Translation toggle */}
+      <button
+        onClick={() => setShowTranslations(v => !v)}
+        title={showTranslations ? "Ẩn dịch nghĩa" : "Hiện dịch nghĩa"}
+        style={{
+          background: showTranslations ? "linear-gradient(135deg, #f5a623, #e84393)" : "rgba(255,255,255,0.07)",
+          color: showTranslations ? "#fff" : "rgba(255,255,255,0.45)",
+          border: "none", borderRadius: "14px",
+          padding: "4px 8px", fontSize: "11px", fontWeight: 800,
+          cursor: "pointer", transition: "all 0.18s",
+          whiteSpace: "nowrap"
+        }}
+      >{showTranslations ? "🇻🇳 Đang hiện" : "🇻🇳 Nghĩa"}</button>
+      <div style={{ width: "1px", height: "16px", background: "rgba(255,255,255,0.15)" }} />
+      {/* Speed control */}
+      <span style={{ fontSize: "13px" }}>🐢</span>
+      {SPEED_PRESETS.map(p => (
+        <button
+          key={p.value}
+          onClick={() => setSpeechRate(p.value)}
+          title={p.hint}
+          style={{
+            background: speechRate === p.value
+              ? "linear-gradient(135deg, #7c3aed, #2563eb)"
+              : "transparent",
+            color: speechRate === p.value ? "#fff" : "rgba(255,255,255,0.45)",
+            border: "none", borderRadius: "14px",
+            padding: "4px 7px", fontSize: "11px", fontWeight: 800,
+            cursor: "pointer", transition: "all 0.18s",
+            minWidth: "32px"
+          }}
+        >{p.label}</button>
+      ))}
+      <span style={{ fontSize: "13px" }}>🐇</span>
+    </div>
+  );
+
+  // ── Bottom nav tab bar — shown on all practice screens
+  const LEARN_SCREENS = ["vocabulary","grammar","spelling","conversation","boss","mixed"];
+  const NAV_TABS = [
+    { id: "vocabulary",   emoji: "📚", label: "Từ vựng" },
+    { id: "grammar",      emoji: "📝", label: "Ngữ pháp" },
+    { id: "spelling",     emoji: "🔤", label: "Chính tả" },
+    { id: "conversation", emoji: "💬", label: "Hội thoại" },
+    { id: "boss",         emoji: "⚔️", label: "Boss" },
+  ];
+
+  const BottomNav = () => (
+    <div style={{
+      position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 1000,
+      background: "rgba(13,13,26,0.97)", backdropFilter: "blur(16px)",
+      borderTop: "1px solid rgba(255,255,255,0.1)",
+    }}>
+      {/* Tab row */}
+      <div style={{ display: "flex", justifyContent: "space-around", padding: "6px 0 2px" }}>
+        {NAV_TABS.map(t => (
+          <button key={t.id} onClick={() => setScreen(t.id)} style={{
+            background: "none", border: "none", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "2px",
+            padding: "4px 8px", borderRadius: "10px",
+            opacity: screen === t.id ? 1 : 0.45,
+            transform: screen === t.id ? "scale(1.12)" : "scale(1)",
+            transition: "all 0.15s",
+          }}>
+            <span style={{ fontSize: "20px", lineHeight: 1 }}>{t.emoji}</span>
+            <span style={{ fontSize: "9px", fontWeight: 800, color: screen === t.id ? "var(--gold)" : "var(--text2)", letterSpacing: "0.3px" }}>{t.label}</span>
+            {screen === t.id && <div style={{ width: "18px", height: "2px", background: "var(--gold)", borderRadius: "2px" }} />}
+          </button>
+        ))}
+      </div>
+      {/* Controls row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", paddingBottom: "8px", paddingTop: "2px" }}>
+        <button onClick={() => setShowTranslations(v => !v)} style={{
+          background: showTranslations ? "linear-gradient(135deg,#f5a623,#e84393)" : "rgba(255,255,255,0.08)",
+          color: showTranslations ? "#fff" : "rgba(255,255,255,0.5)",
+          border: "none", borderRadius: "12px", padding: "3px 10px",
+          fontSize: "11px", fontWeight: 800, cursor: "pointer"
+        }}>{showTranslations ? "🇻🇳 Đang hiện" : "🇻🇳 Nghĩa"}</button>
+        <div style={{ width: "1px", height: "14px", background: "rgba(255,255,255,0.15)" }} />
+        <span style={{ fontSize: "12px" }}>🐢</span>
+        {SPEED_PRESETS.map(p => (
+          <button key={p.value} onClick={() => setSpeechRate(p.value)} title={p.hint} style={{
+            background: speechRate === p.value ? "linear-gradient(135deg,#7c3aed,#2563eb)" : "transparent",
+            color: speechRate === p.value ? "#fff" : "rgba(255,255,255,0.4)",
+            border: "none", borderRadius: "10px", padding: "3px 6px",
+            fontSize: "10px", fontWeight: 800, cursor: "pointer", minWidth: "28px"
+          }}>{p.label}</button>
+        ))}
+        <span style={{ fontSize: "12px" }}>🐇</span>
+        <div style={{ width: "1px", height: "14px", background: "rgba(255,255,255,0.15)" }} />
+        <button onClick={() => setScreen("menu")} style={{
+          background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "12px",
+          padding: "3px 10px", fontSize: "11px", fontWeight: 800,
+          color: "rgba(255,255,255,0.5)", cursor: "pointer"
+        }}>🏠 Menu</button>
+      </div>
+    </div>
+  );
+
+  // Shared wrapper for all practice screens — adds bottom padding so content clears nav
+  const withNav = (content) => (
+    <>
+      <GlobalStyles /><SpeakBanner />
+      <div style={{ paddingBottom: "110px" }}>{content}</div>
+      <BottomNav />
+    </>
+  );
+
+  if (screen === "lesson") return (
+    <>
+      <GlobalStyles />
+      <LessonPathMenu
+        onBack={() => setScreen("menu")}
+        onUnit={(unit) => { setActiveUnit(unit); setScreen("lessonunit"); }}
+        xp={xp}
+        completedUnits={completedUnits}
+      />
+    </>
+  );
+
+  if (screen === "lessonunit" && activeUnit) return (
+    <>
+      <GlobalStyles /><SpeakBanner /><AudioNotice />
+      <div style={{ paddingBottom: "20px" }}>
+        <LessonUnitScreen
+          unit={activeUnit}
+          allVocab={allVocab}
+          onBack={() => setScreen("lesson")}
+          onXP={addXP}
+          onComplete={(unitId) => {
+            setCompletedUnits(prev => prev.includes(unitId) ? prev : [...prev, unitId]);
+            setScreen("lesson");
+          }}
+        />
+      </div>
+    </>
+  );
+
+  if (screen === "vocabulary")   return withNav(<VocabMode vocab={shuffle(allVocab)} onBack={() => setScreen("menu")} onXP={addXP} onMiss={handleMiss} combo={combo} showTranslations={showTranslations} />);
+  if (screen === "grammar")      return withNav(<GrammarMode onBack={() => setScreen("menu")} onXP={addXP} onMiss={handleMiss} />);
+  if (screen === "spelling")     return withNav(<SpellingMode vocab={shuffle(allVocab)} onBack={() => setScreen("menu")} onXP={addXP} onMiss={handleMiss} combo={combo} showTranslations={showTranslations} />);
+  if (screen === "conversation") return withNav(<ConversationMode onBack={() => setScreen("menu")} onXP={addXP} onMiss={handleMiss} />);
+  if (screen === "boss")         return withNav(<BossBattle vocab={shuffle(allVocab)} onBack={() => setScreen("menu")} onXP={addXP} onMiss={handleMiss} showTranslations={showTranslations} />);
+  if (screen === "mixed")        return withNav(<MixedMode vocab={shuffle(allVocab)} onBack={() => setScreen("menu")} onXP={addXP} onMiss={handleMiss} combo={combo} showTranslations={showTranslations} />);
+
+  return (
+    <>
+      <GlobalStyles />
+      <SpeakBanner />
+      {xpPopups.map(p => (
+        <div key={p.id} className="xp-popup" style={{ left: `${p.x}px`, top: "40%" }}>+{p.amount} XP</div>
+      ))}
+      <MainMenu
+        player={player}
+        xp={xp}
+        hearts={hearts}
+        streak={streak}
+        onMode={(mode) => setScreen(mode)}
+        onLeaderboard={() => setScreen("leaderboard")}
+        onSettings={() => setScreen("settings")}
+        onLogout={() => { setPlayer(null); setScreen("welcome"); }}
+        customVocab={customVocab}
+      />
+    </>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+  </script>
+</body>
+</html>
